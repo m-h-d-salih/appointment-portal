@@ -106,11 +106,13 @@ function ClientDetailsRoute() {
   return (
     <ConfigProvider
       theme={{
-        token: {
-          colorPrimary: "#2D5A3F",
-          colorPrimaryHover: "#16482b",
-          colorLink: "#2D5A3F",
-          colorLinkHover: "#16482b",
+        token: { colorPrimary: "#2D5A3F" },
+        components: {
+          DatePicker: {
+            activeBorderColor: "#2D5A3F",
+            hoverBorderColor: "#2D5A3F",
+            activeShadow: "0 0 0 2px rgba(45, 90, 63, 0.15)",
+          },
         },
       }}
     >

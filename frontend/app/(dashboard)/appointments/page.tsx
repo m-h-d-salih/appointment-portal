@@ -63,7 +63,7 @@ export type Appointment = {
   status: Status;
   createdAt: string;
   clientId: string; // new — links to the client record
-  scheduledDate?: string;
+   scheduledDate?: string;
 };
 
 export function ClientDetails({
@@ -268,13 +268,15 @@ export function ClientDetails({
           </div>
 
           <div className="client-title">
-            <div>
-              <h1>{data.name}</h1>
+            <div className="min-w-0 flex-1">
+              <h1 className="truncate" title={data.name}>
+                {data.name}
+              </h1>
               <p>
                 {data.clientType} · Age {data.age}
               </p>
             </div>
-            <div className="flex flex-wrap items-center justify-end gap-2">
+            <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
               <button
                 type="button"
                 className="reportbtn"
@@ -283,6 +285,7 @@ export function ClientDetails({
                 <FiDownload aria-hidden="true" />
                 Report
               </button>
+              {/* <span className="status accepted">Accepted</span> */}
             </div>
           </div>
 
@@ -525,7 +528,7 @@ export function ClientDetails({
                       <DatePicker
                         format="DD/MM/YYYY"
                         disabled={!isEditing("Mental Status Exam")}
-                        className="h-11! w-full"
+                        className="h-11! w-full bg-white! [&.ant-picker-disabled]:bg-[#f4f4f0]!"
                         value={
                           mentalStatusValues.exam_date
                             ? dayjs(mentalStatusValues.exam_date)
@@ -884,7 +887,7 @@ export default function AppointmentsPage() {
     window.addEventListener("appointment-created", fetchAppointments);
     return () =>
       window.removeEventListener("appointment-created", fetchAppointments);
-  }, []);
+  },[]);
 
   const [searchInput, setSearchInput] = useState("");
   useEffect(() => {
