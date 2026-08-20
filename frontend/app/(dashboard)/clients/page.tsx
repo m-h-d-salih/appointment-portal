@@ -126,16 +126,16 @@ export default function ClientsPage() {
             onClick={() =>
               router.push(`/client/viewdetails?id=${row.id}&from=clients`)
             }
-          >
-            View Details
-          </button>
-          <button
-            type="button"
-            className="reportbtn"
-            onClick={() => openReportModal(row)}
-          >
-            <FiDownload aria-hidden="true" /> Report
-          </button>
+           >
+             View Details
+           </button>
+           <button
+             type="button"
+             className="reportbtn"
+             onClick={() => openReportModal(row)}
+           >
+             <FiDownload aria-hidden="true" /> Report
+           </button>
         </div>
       ),
     },
