@@ -2,9 +2,16 @@
 
 import { createClient } from '@/lib/supabase/server'
 
+async function getAuthenticatedUser() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+  return { supabase, user }
+}
+
 // Search client by phone number (for returning clients)
 export async function searchClientByPhone(phone: string) {
-  const supabase = await createClient()
+   const { supabase } = await getAuthenticatedUser()
 
   const { data: client, error } = await supabase
     .from('clients')
@@ -120,7 +127,7 @@ export async function getAppointments(params?: {
   dateFrom?: string
   dateTo?: string
 }) {
-  const supabase = await createClient()
+   const { supabase } = await getAuthenticatedUser()
   const {
     page = 1,
     pageSize = 10,
@@ -209,7 +216,7 @@ export async function updateAppointmentStatus(
   appointmentId: string,
   status: 'Accepted' | 'Rejected'
 ) {
-  const supabase = await createClient()
+   const { supabase } = await getAuthenticatedUser()
 
   const { error } = await supabase
     .from('appointments')
@@ -222,7 +229,7 @@ export async function updateAppointmentStatus(
 
 // Delete appointment
 export async function deleteAppointment(appointmentId: string) {
-  const supabase = await createClient()
+   const { supabase } = await getAuthenticatedUser()
 
   const { error } = await supabase
     .from('appointments')
@@ -242,7 +249,7 @@ export async function getApprovedClients(params?: {
   dateFrom?: string
   dateTo?: string
 }) {
-  const supabase = await createClient()
+   const { supabase } = await getAuthenticatedUser()
   const {
     page = 1,
     pageSize = 10,
@@ -356,7 +363,7 @@ export async function getApprovedClients(params?: {
  
 // ─── Dashboard: latest 5 appointments (no pagination needed) ───
 export async function getLatestAppointments(limit: number = 5) {
-  const supabase = await createClient()
+   const { supabase } = await getAuthenticatedUser()
  
   const { data, error } = await supabase
     .from('appointments')
@@ -397,7 +404,7 @@ export async function getLatestAppointments(limit: number = 5) {
 
 // Fetch full client details with all related data
 export async function getClientDetails(clientId: string) {
-  const supabase = await createClient()
+   const { supabase } = await getAuthenticatedUser()
 
   // Fetch client
   const { data: client, error: clientError } = await supabase
@@ -496,7 +503,7 @@ if (appointment) {
 
 // Save application form
 export async function saveApplicationForm(appointmentId: string, currentProblem: string) {
-  const supabase = await createClient()
+   const { supabase } = await getAuthenticatedUser()
 
   const { error } = await supabase
     .from('application_forms')
@@ -513,7 +520,7 @@ export async function saveClientInfo(clientId: string, data: {
   relative: string
   address: string
 }) {
-  const supabase = await createClient()
+   const { supabase } = await getAuthenticatedUser()
 
   const { error } = await supabase
     .from('clients')
@@ -527,7 +534,7 @@ export async function saveClientInfo(clientId: string, data: {
 // Save student intake form
 // REPLACE saveStudentIntake
 export async function saveStudentIntake(clientId: string, data: Record<string, string>) {
-  const supabase = await createClient()
+   const { supabase } = await getAuthenticatedUser()
 
   const { error } = await supabase
     .from('student_intake')
@@ -542,7 +549,7 @@ export async function saveStudentIntake(clientId: string, data: Record<string, s
 
 // REPLACE saveParentsDetails
 export async function saveParentsDetails(clientId: string, data: Record<string, string>) {
-  const supabase = await createClient()
+   const { supabase } = await getAuthenticatedUser()
 
   const { error } = await supabase
     .from('parents_details')
@@ -557,7 +564,7 @@ export async function saveParentsDetails(clientId: string, data: Record<string, 
 
 // REPLACE saveAssessmentReport
 export async function saveAssessmentReport(clientId: string, data: Record<string, string>) {
-  const supabase = await createClient()
+   const { supabase } = await getAuthenticatedUser()
 
   const { error } = await supabase
     .from('assessment_reports')
@@ -572,7 +579,7 @@ export async function saveAssessmentReport(clientId: string, data: Record<string
 
 // Save mental status exam
 export async function saveMentalStatusExam(appointmentId: string, data: Record<string, any>) {
-  const supabase = await createClient()
+   const { supabase } = await getAuthenticatedUser()
 
   const { error } = await supabase
     .from('mental_status_exams')
@@ -592,7 +599,7 @@ export async function addRemediationEntry(clientId: string, data: {
   improvement_seen: string
   sort_order: number
 }) {
-  const supabase = await createClient()
+   const { supabase } = await getAuthenticatedUser()
 
   const { data: entry, error } = await supabase
     .from('remediation_entries')
@@ -610,7 +617,7 @@ export async function updateRemediationEntry(entryId: string, data: {
   remediation_given?: string
   improvement_seen?: string
 }) {
-  const supabase = await createClient()
+   const { supabase } = await getAuthenticatedUser()
 
   const { error } = await supabase
     .from('remediation_entries')
@@ -623,7 +630,7 @@ export async function updateRemediationEntry(entryId: string, data: {
 
 // Delete a remediation entry
 export async function deleteRemediationEntry(entryId: string) {
-  const supabase = await createClient()
+   const { supabase } = await getAuthenticatedUser()
 
   const { error } = await supabase
     .from('remediation_entries')
@@ -642,7 +649,7 @@ export async function addPlanEntry(appointmentId: string, data: {
   doctor_signature: string
   sort_order: number
 }) {
-  const supabase = await createClient()
+   const { supabase } = await getAuthenticatedUser()
 
   const { data: entry, error } = await supabase
     .from('plan_entries')
@@ -661,7 +668,7 @@ export async function updatePlanEntry(entryId: string, data: {
   improvement_seen?: string
   doctor_signature?: string
 }) {
-  const supabase = await createClient()
+   const { supabase } = await getAuthenticatedUser()
 
   const { error } = await supabase
     .from('plan_entries')
@@ -674,7 +681,7 @@ export async function updatePlanEntry(entryId: string, data: {
 
 // Delete a plan entry
 export async function deletePlanEntry(entryId: string) {
-  const supabase = await createClient()
+   const { supabase } = await getAuthenticatedUser()
 
   const { error } = await supabase
     .from('plan_entries')
@@ -687,7 +694,7 @@ export async function deletePlanEntry(entryId: string) {
 
 // Get database storage usage
 export async function getStorageUsage() {
-  const supabase = await createClient()
+   const { supabase } = await getAuthenticatedUser()
 
   const { data, error } = await supabase
     .rpc('get_db_size')
@@ -698,8 +705,14 @@ export async function getStorageUsage() {
 
 // Delete all appointment data older than a given date
 export async function deleteDataBeforeDate(beforeDate: string) {
-  const supabase = await createClient()
+    const { supabase, user } = await getAuthenticatedUser()
+const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single()
 
+  if (profile?.role !== 'admin') return { error: 'Admin access required', deleted: 0 }
   // Get appointments before the date
   const { data: oldAppointments } = await supabase
     .from('appointments')
@@ -758,7 +771,7 @@ export async function updateAppointmentDetails(
     scheduledDate?: string
   }
 ) {
-  const supabase = await createClient()
+   const { supabase } = await getAuthenticatedUser()
 
   // Update client info
   const { error: clientError } = await supabase
@@ -791,64 +804,33 @@ export async function updateAppointmentDetails(
 
 // Dashboard stats
 export async function getDashboardStats() {
-  const supabase = await createClient()
-
+ const { supabase, user } = await getAuthenticatedUser()
   const today = new Date().toISOString().split('T')[0]
 
-  // Total appointments
-  const { count: totalAppointments } = await supabase
-    .from('appointments')
-    .select('*', { count: 'exact', head: true })
-
-  // Pending
-  const { count: pendingAppointments } = await supabase
-    .from('appointments')
-    .select('*', { count: 'exact', head: true })
-    .eq('status', 'Pending')
-
-  // Accepted
-  const { count: acceptedAppointments } = await supabase
-    .from('appointments')
-    .select('*', { count: 'exact', head: true })
-    .eq('status', 'Accepted')
-
-  // Today's appointments
-  const { count: todayAppointments } = await supabase
-    .from('appointments')
-    .select('*', { count: 'exact', head: true })
-    .eq('scheduled_date', today)
-
-  // Total clients
-  const { count: totalClients } = await supabase
-    .from('clients')
-    .select('*', { count: 'exact', head: true })
-
-  // Student clients
-  const { count: studentClients } = await supabase
-    .from('clients')
-    .select('*', { count: 'exact', head: true })
-    .eq('client_type', 'Student')
-
-  // Normal/Client clients
-  const { count: normalClients } = await supabase
-    .from('clients')
-    .select('*', { count: 'exact', head: true })
-    .eq('client_type', 'Client')
+  const [total, pending, accepted, todays, clients, students, normals] = await Promise.all([
+    supabase.from('appointments').select('*', { count: 'exact', head: true }),
+    supabase.from('appointments').select('*', { count: 'exact', head: true }).eq('status', 'Pending'),
+    supabase.from('appointments').select('*', { count: 'exact', head: true }).eq('status', 'Accepted'),
+    supabase.from('appointments').select('*', { count: 'exact', head: true }).eq('scheduled_date', today),
+    supabase.from('clients').select('*', { count: 'exact', head: true }),
+    supabase.from('clients').select('*', { count: 'exact', head: true }).eq('client_type', 'Student'),
+    supabase.from('clients').select('*', { count: 'exact', head: true }).eq('client_type', 'Client'),
+  ])
 
   return {
-    totalAppointments: totalAppointments || 0,
-    pendingAppointments: pendingAppointments || 0,
-    acceptedAppointments: acceptedAppointments || 0,
-    todayAppointments: todayAppointments || 0,
-    totalClients: totalClients || 0,
-    studentClients: studentClients || 0,
-    normalClients: normalClients || 0,
+    totalAppointments: total.count || 0,
+    pendingAppointments: pending.count || 0,
+    acceptedAppointments: accepted.count || 0,
+    todayAppointments: todays.count || 0,
+    totalClients: clients.count || 0,
+    studentClients: students.count || 0,
+    normalClients: normals.count || 0,
   }
 }
 
 // Fetch client basic info by ID
 export async function getClientById(clientId: string) {
-  const supabase = await createClient()
+   const { supabase } = await getAuthenticatedUser()
 
   const { data, error } = await supabase
     .from('clients')

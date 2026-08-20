@@ -63,6 +63,7 @@ export type Appointment = {
   status: Status;
   createdAt: string;
   clientId: string; // new — links to the client record
+   scheduledDate?: string;
 };
 
 export function ClientDetails({
@@ -884,7 +885,7 @@ export default function AppointmentsPage() {
     window.addEventListener("appointment-created", fetchAppointments);
     return () =>
       window.removeEventListener("appointment-created", fetchAppointments);
-  });
+  },[]);
 
   const [searchInput, setSearchInput] = useState("");
   useEffect(() => {
@@ -1075,6 +1076,7 @@ export default function AppointmentsPage() {
                 countryCode: appointmentToEdit.countryCode,
                 phone: appointmentToEdit.phone,
                 clientType: appointmentToEdit.clientType,
+                 scheduledDate: appointmentToEdit.scheduledDate, 
               }
             : undefined
         }

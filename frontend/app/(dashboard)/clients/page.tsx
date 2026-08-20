@@ -4,9 +4,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { DataTable, type Column } from "@/components/DataTable";
 import { FilterHeader } from "@/components/FilterHeader";
-import type { Dayjs } from "dayjs";
+import dayjs, { type Dayjs } from "dayjs";
 import { getApprovedClients } from "@/lib/actions/appointments";
-import type { Appointment } from "../appointments/page";
 import { FiDownload } from "react-icons/fi";
 import ReportDownloadModal from "@/components/ReportDownloadModal";
 
@@ -36,9 +35,7 @@ const [page, setPage] = useState(1);
 const [total, setTotal] = useState(0);
 const pageSize = 10;
   const [selectedType, setSelectedType] = useState("all");
-  const [dateRange, setDateRange] = useState<
-    [Dayjs | null, Dayjs | null] | null
-  >(null);
+ const [dateRange, setDateRange] = useState<[Dayjs | null, Dayjs | null] | null>([dayjs().startOf("day"), dayjs().endOf("day")]);
   const [reportClient, setReportClient] = useState<ClientRow | null>(null);
 
   const openReportModal = (client: ClientRow) => {
@@ -67,6 +64,14 @@ const pageSize = 10;
   fetch();
 }, [page, searchQuery, selectedType, dateRange]);
 
+const [searchInput, setSearchInput] = useState("");
+useEffect(() => {
+  const timer = setTimeout(() => {
+    setSearchQuery(searchInput);
+    setPage(1);
+  }, 400);
+  return () => clearTimeout(timer);
+}, [searchInput]);
 
   const columns: Column<ClientRow>[] = [
     {
@@ -141,23 +146,18 @@ const pageSize = 10;
       </div>
 
       <FilterHeader
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
+        searchQuery={searchInput}
+        onSearchChange={setSearchInput}
         searchPlaceholder="Search by name or phone"
         selectedStatus={selectedType}
-        onStatusChange={setSelectedType}
+        onStatusChange={(val) => { setSelectedType(val); setPage(1); }}
         statusOptions={TYPE_OPTIONS}
         dateRange={dateRange}
-        onDateRangeChange={setDateRange}
+        onDateRangeChange={(val) => { setDateRange(val); setPage(1); }}
       />
 
       <section className="content-card">
-        <DataTable
-          columns={columns}
-          data={clients}
-          loading={loading}
-          pageSize={10}
-        />
+    <DataTable columns={columns} data={clients} loading={loading} pageSize={pageSize} total={total} currentPage={page} onPageChange={setPage} />
       </section>
 
       <ReportDownloadModal

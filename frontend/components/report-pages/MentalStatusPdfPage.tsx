@@ -697,7 +697,7 @@ function ExamSection({ section, mentalData }: { section: ExamSectionData; mental
   const dataKey = sectionKeyMap[section.title] || "";
   const sectionData = mentalData?.[dataKey] as Record<string, string[]> | undefined;
   const comments = (mentalData?.[`${dataKey}_comments`] as string) || "";
-
+const emptyLabelKey = section.title === "MOOD" ? "Mood" : "Behavior";
   return (
     <View wrap={false}>
       <View style={styles.sectionTitle}>
@@ -710,7 +710,7 @@ function ExamSection({ section, mentalData }: { section: ExamSectionData; mental
           options={options}
           columns={columns}
           behavior={isBehavior}
-          checkedValues={sectionData?.[label || "Mood"] || []}
+          checkedValues={sectionData?.[label || emptyLabelKey] || []}
         />
       ))}
       <CommentsRow comment={comments} />
@@ -793,7 +793,6 @@ function BottomRow({ title, last = false, rating = [], comment = "" }: {
 
 export function MentalStatusPdfPage({ data }: PageProps) {
   const mentalData = data.mentalStatusExam || {};
-
   return (
     <Page size="A4" style={styles.page} wrap={false}>
       <View style={styles.exam}>

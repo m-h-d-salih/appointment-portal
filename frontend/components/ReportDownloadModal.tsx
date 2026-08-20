@@ -48,7 +48,11 @@ export default function ReportDownloadModal({
 
 // In useEffect:
 useEffect(() => {
-  if (!open || !client?.id) return;
+  if (!open) {
+    setFullClient(null);  // ← add this
+    return;
+  }
+  if (!client?.id) return;
   setFetching(true);
   getClientDetails(client.id).then((result) => {
     setFullClient(result.data);
