@@ -190,11 +190,11 @@ const styles = StyleSheet.create({
   },
 
   checkbox: {
-    width: 6,
-    height: 6,
+    width: 8,
+    height: 8,
 
-    borderWidth: 0.7,
-    borderColor: "#444444",
+    borderWidth: 1,
+    borderColor: "#222222",
 
     marginRight: 4,
     alignItems: "center",
@@ -202,13 +202,13 @@ const styles = StyleSheet.create({
   },
 
   checkmark: {
-    width: 3.5,
-    height: 2,
-    borderLeftWidth: 0.8,
-    borderBottomWidth: 0.8,
-    borderColor: "#222222",
+    width: 5,
+    height: 3,
+    borderLeftWidth: 1.4,
+    borderBottomWidth: 1.4,
+    borderColor: "#144229",
     transform: "rotate(-45deg)",
-    marginTop: -1,
+    marginTop: -1.5,
   },
 
   optionText: {
