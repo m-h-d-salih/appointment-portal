@@ -287,7 +287,6 @@ const assessmentLabels: Record<string, string> = {
     const assessmentExcelRows = data.assessmentReports.map((a: any) => {
       const client = data.clients.find((c: any) => c.id === a.client_id);
       const mapped = mapFormData(a.form_data || {}, assessmentLabels);
-  console.log("UNMAPPED KEYS:", Object.keys(a.form_data || {}).filter(k => !assessmentLabels[k]));
       return {
         ...clientInfo(client),
         ...mapped,
@@ -364,6 +363,9 @@ const assessmentLabels: Record<string, string> = {
                 style={{ width: `${percentage}%`, backgroundColor: barColor }}
               />
             </div>
+            <p className="mt-2 text-xs text-[#414942]">
+  Includes system overhead. Your actual data usage is much smaller.
+</p>
             {percentage > 80 && (
               <p className="mt-2 flex items-center gap-1.5 text-sm font-medium text-red-600">
                 <FiAlertTriangle className="h-4 w-4" />
