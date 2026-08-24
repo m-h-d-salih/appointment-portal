@@ -15,6 +15,7 @@ import {
   updateRemediationEntry,
   deleteRemediationEntry,
 } from "@/lib/actions/appointments";
+import DeleteConfirmationModal from "@/components/DeleteConfirmationModal";
 
 /* ─── Field ─── */
 export function Field({
@@ -261,6 +262,15 @@ export function AssessmentReportForm({
     "Inversion",
     "Comprehension",
   ];
+  const writingRows = [
+    "Transposition",
+    "Reversal",
+    "Omissions",
+    "Substitutions",
+    "Inversion",
+    "Self-correction",
+    "Insertion",
+  ];
   const key = (label: string, index: number) => labelToKey(label, index);
   const update = (label: string, index: number, value: string) =>
     onChange?.({ ...values, [key(label, index)]: value });
@@ -334,7 +344,9 @@ export function AssessmentReportForm({
       </div>
       <div className="overflow-hidden rounded-md border border-[#c1c9c0] bg-white">
         <div className="grid grid-cols-1 bg-[#f4f4f0] text-xs font-bold text-[#144229] xl:grid-cols-2">
-          <div className="p-3 xl:border-r xl:border-[#c1c9c0]">Writing</div>
+          <div className="p-3 xl:border-r xl:border-[#c1c9c0]">
+            General Reading
+          </div>
           <div className="hidden p-3 xl:block">Score</div>
         </div>
         {readingRows.map((label, rowIndex) => {
@@ -349,6 +361,40 @@ export function AssessmentReportForm({
               </div>
               <div className={editable ? "bg-white" : "bg-[#f4f4f0]"}>
                 {input(fullLabel, rowIndex + 22)}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <div className="grid grid-cols-2 overflow-hidden rounded-md border border-[#c1c9c0] bg-white text-sm text-[#144229]">
+        <div className="flex border-r border-[#c1c9c0]">
+          <div className="w-10 shrink-0 border-r border-[#c1c9c0] p-3">13</div>
+          <div className="p-3 font-medium">Writing</div>
+        </div>
+        <div className={editable ? "bg-white" : "bg-[#f4f4f0]"}>
+          {input("Writing", 30)}
+        </div>
+      </div>
+      <div className="overflow-hidden rounded-md border border-[#c1c9c0] bg-white">
+        <div className="grid grid-cols-1 bg-[#f4f4f0] text-xs font-bold text-[#144229] xl:grid-cols-2">
+          <div className="p-3 xl:border-r xl:border-[#c1c9c0]">
+            Writing (Check notebook writing for the last 6 months. Select 6
+            pages randomly)
+          </div>
+          <div className="hidden p-3 xl:block">Score</div>
+        </div>
+        {writingRows.map((label, rowIndex) => {
+          const fullLabel = `Writing - ${label}`;
+          return (
+            <div
+              key={`writing-${label}`}
+              className="grid grid-cols-1 border-t border-[#c1c9c0] text-sm text-[#144229] xl:grid-cols-2"
+            >
+              <div className="border-b border-[#c1c9c0] bg-white p-3 font-medium xl:border-r xl:border-b-0 xl:font-normal">
+                {label}
+              </div>
+              <div className={editable ? "bg-white" : "bg-[#f4f4f0]"}>
+                {input(fullLabel, rowIndex + 31)}
               </div>
             </div>
           );
@@ -445,6 +491,7 @@ export function RepeatSection({
         ],
   );
   const [open, setOpen] = React.useState(true);
+  const [rowToDelete, setRowToDelete] = React.useState<number | null>(null);
 
   const [saving, setSaving] = React.useState(false);
 
@@ -542,16 +589,14 @@ export function RepeatSection({
                           >
                             {saving ? "..." : row.id ? "Update" : "Save"}
                           </button>
-                          {(index > 0 || rows.length > 1) && (
-                            <button
-                              type="button"
-                              className="cursor-pointer rounded p-1.5 text-[#9b3022]! hover:bg-white"
-                              onClick={() => handleDeleteRow(index)}
-                              aria-label={`Delete session ${index + 1}`}
-                            >
-                              <FiTrash2 className="h-4 w-4" />
-                            </button>
-                          )}
+                          <button
+                            type="button"
+                            className="cursor-pointer rounded p-1.5 text-[#9b3022]! hover:bg-white"
+                            onClick={() => setRowToDelete(index)}
+                            aria-label={`Delete session ${index + 1}`}
+                          >
+                            <FiTrash2 className="h-4 w-4" />
+                          </button>
                         </div>
                       </div>
                       <div
@@ -635,6 +680,21 @@ export function RepeatSection({
             ),
           },
         ]}
+      />
+      <DeleteConfirmationModal
+        open={rowToDelete !== null}
+        itemName={
+          rowToDelete !== null ? `Session ${rowToDelete + 1}` : undefined
+        }
+        title="Delete session?"
+        actionDescription="This session and its saved details will be permanently deleted."
+        onCancel={() => setRowToDelete(null)}
+        onConfirm={async () => {
+          if (rowToDelete !== null) {
+            await handleDeleteRow(rowToDelete);
+          }
+          setRowToDelete(null);
+        }}
       />
     </div>
   );

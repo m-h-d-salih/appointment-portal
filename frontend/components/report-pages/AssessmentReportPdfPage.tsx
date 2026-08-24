@@ -93,6 +93,30 @@ function ReadingTable({ data }: { data: ApplicationPdfData }) {
   );
 }
 
+function WritingTable({ data }: { data: ApplicationPdfData }) {
+  return (
+    <View style={[styles.table, styles.subTable]}>
+      <View style={styles.subHeader}>
+        <Text style={[styles.cell, styles.assessment, styles.header]}>
+          Writing (Check notebook writing for the last 6 months. Select 6 pages
+          randomly)
+        </Text>
+        <Text style={[styles.cell, styles.score, styles.header]}>Score</Text>
+      </View>
+      {writingRows.map((label, index) => (
+        <View style={[styles.row, styles.blankRow]} key={label}>
+          <Text style={[styles.cell, styles.assessment]}>{label}</Text>
+          <Text style={[styles.cell, styles.score]}>
+            {data.assessmentReport?.[
+              labelToKey(`Writing - ${label}`, index + 31)
+            ] || ""}
+          </Text>
+        </View>
+      ))}
+    </View>
+  );
+}
+
 function AssessmentPage({ data }: PageProps) {
   return (
     <Page size="A4" style={styles.page} wrap={false}>
@@ -101,22 +125,14 @@ function AssessmentPage({ data }: PageProps) {
       <ReadingTable data={data} />
       <View style={[styles.table, styles.subTable]}>
         <View style={styles.row}>
-          <Text style={[styles.cell, styles.assessment]}>13&nbsp;&nbsp; Writing</Text>
-          <Text style={[styles.cell, styles.score]} />
+          <Text style={[styles.cell, styles.serial]}>13</Text>
+          <Text style={[styles.cell, styles.assessment]}>Writing</Text>
+          <Text style={[styles.cell, styles.score]}>
+            {data.assessmentReport?.[labelToKey("Writing", 30)] || ""}
+          </Text>
         </View>
       </View>
-            <View style={[styles.table, styles.subTable]}>
-        <View style={styles.subHeader}>
-          <Text style={[styles.cell, styles.assessment, styles.header]}>Writing</Text>
-          <Text style={[styles.cell, styles.score, styles.header]}>Score</Text>
-        </View>
-        {writingRows.map((label) => (
-          <View style={[styles.row, styles.blankRow]} key={label}>
-            <Text style={[styles.cell, styles.assessment]}>{label}</Text>
-            <Text style={[styles.cell, styles.score]} />
-          </View>
-        ))}
-      </View>
+      <WritingTable data={data} />
     </Page>
   );
 }
