@@ -846,7 +846,6 @@ export async function getClientById(clientId: string) {
 export async function getAllDataForExport() {
   const { supabase, user } = await getAuthenticatedUser()
 
-  // Admin only
   const { data: profile } = await supabase
     .from('profiles')
     .select('role')
@@ -855,37 +854,40 @@ export async function getAllDataForExport() {
 
   if (profile?.role !== 'admin') return { error: 'Admin access required', data: null }
 
-  const [
-    { data: clients },
-    { data: appointments },
-    { data: applicationForms },
-    { data: studentIntake },
-    { data: parentsDetails },
-    { data: assessmentReports },
-    { data: mentalStatusExams },
-    { data: remediationEntries },
-  ] = await Promise.all([
-    supabase.from('clients').select('*').order('created_at', { ascending: false }),
-    supabase.from('appointments').select('*').order('created_at', { ascending: false }),
-    supabase.from('application_forms').select('*'),
-    supabase.from('student_intake').select('*'),
-    supabase.from('parents_details').select('*'),
-    supabase.from('assessment_reports').select('*'),
-    supabase.from('mental_status_exams').select('*'),
-    supabase.from('remediation_entries').select('*').order('sort_order', { ascending: true }),
+  async function fetchAll(table: string, orderBy = 'created_at') {
+    const rows: any[] = []
+    let from = 0
+    const batchSize = 1000
+
+    while (true) {
+      const { data, error } = await supabase
+        .from(table)
+        .select('*')
+        .order(orderBy, { ascending: false })
+        .range(from, from + batchSize - 1)
+
+      if (error || !data || data.length === 0) break
+      rows.push(...data)
+      if (data.length < batchSize) break
+      from += batchSize
+    }
+
+    return rows
+  }
+
+  const [clients, appointments, applicationForms, studentIntake, parentsDetails, assessmentReports, mentalStatusExams, remediationEntries] = await Promise.all([
+    fetchAll('clients'),
+    fetchAll('appointments'),
+    fetchAll('application_forms', 'appointment_id'),
+    fetchAll('student_intake', 'client_id'),
+    fetchAll('parents_details', 'client_id'),
+    fetchAll('assessment_reports', 'client_id'),
+    fetchAll('mental_status_exams', 'appointment_id'),
+    fetchAll('remediation_entries', 'sort_order'),
   ])
 
   return {
     error: null,
-    data: {
-      clients: clients || [],
-      appointments: appointments || [],
-      applicationForms: applicationForms || [],
-      studentIntake: studentIntake || [],
-      parentsDetails: parentsDetails || [],
-      assessmentReports: assessmentReports || [],
-      mentalStatusExams: mentalStatusExams || [],
-      remediationEntries: remediationEntries || [],
-    },
+    data: { clients, appointments, applicationForms, studentIntake, parentsDetails, assessmentReports, mentalStatusExams, remediationEntries },
   }
 }
