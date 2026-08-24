@@ -168,12 +168,15 @@ export default function ClientsPage() {
       />
 
       <section className="content-card">
-        <DataTable
-          columns={columns}
-          data={clients}
-          loading={loading}
-          pageSize={10}
-        />
+ <DataTable
+  columns={columns}
+  data={clients}
+  loading={loading}
+  pageSize={pageSize}
+  total={total}
+  currentPage={page}
+  onPageChange={setPage}
+/>
       </section>
 
       <ReportDownloadModal
