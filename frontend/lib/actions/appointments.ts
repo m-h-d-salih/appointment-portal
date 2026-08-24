@@ -249,7 +249,7 @@ export async function getApprovedClients(params?: {
   dateFrom?: string
   dateTo?: string
 }) {
-   const { supabase } = await getAuthenticatedUser()
+  const supabase = await createClient()
   const {
     page = 1,
     pageSize = 10,
@@ -262,11 +262,12 @@ export async function getApprovedClients(params?: {
   const from = (page - 1) * pageSize
   const to = from + pageSize - 1
 
-  // First, get appointment IDs matching the date filter
+  // Step 1: Get client IDs with their latest scheduled date
   let appointmentQuery = supabase
     .from('appointments')
-    .select('client_id')
+    .select('client_id, scheduled_date')
     .eq('status', 'Accepted')
+    .order('scheduled_date', { ascending: false })
 
   if (dateFrom) {
     appointmentQuery = appointmentQuery.gte('scheduled_date', dateFrom)
@@ -277,16 +278,21 @@ export async function getApprovedClients(params?: {
 
   const { data: matchingAppointments } = await appointmentQuery
 
-  // If date filter is active but no matches, return empty
-  if ((dateFrom || dateTo) && (!matchingAppointments || matchingAppointments.length === 0)) {
+  if (!matchingAppointments || matchingAppointments.length === 0) {
     return { clients: [], total: 0, error: null }
   }
 
-  const matchedClientIds = matchingAppointments
-    ? [...new Set(matchingAppointments.map((a) => a.client_id))]
-    : null
+  // Get unique client IDs ordered by their latest appointment date
+  const clientOrder: string[] = []
+  const latestDates = new Map<string, string>()
+  for (const apt of matchingAppointments) {
+    if (!latestDates.has(apt.client_id)) {
+      latestDates.set(apt.client_id, apt.scheduled_date || '')
+      clientOrder.push(apt.client_id)
+    }
+  }
 
-  // Now query clients
+  // Step 2: Query clients
   let query = supabase
     .from('clients')
     .select(
@@ -299,13 +305,7 @@ export async function getApprovedClients(params?: {
       { count: 'exact' },
     )
     .eq('appointments.status', 'Accepted')
-    .order('created_at', { ascending: false })
-    .range(from, to)
-
-  // Filter by matched client IDs from date query
-  if (matchedClientIds) {
-    query = query.in('id', matchedClientIds)
-  }
+    .in('id', clientOrder)
 
   if (clientType && clientType !== 'all') {
     query = query.eq('client_type', clientType)
@@ -320,45 +320,45 @@ export async function getApprovedClients(params?: {
   if (error) return { error: error.message, clients: [], total: 0 }
 
   const seen = new Set<string>()
-  const clients = (data || [])
-    .filter((c) => {
-      if (seen.has(c.id)) return false
-      seen.add(c.id)
-      return true
+  const clientsMap = new Map<string, any>()
+
+  for (const c of (data || [])) {
+    if (seen.has(c.id)) continue
+    seen.add(c.id)
+
+    const appts = c.appointments as unknown as {
+      id: string
+      status: string
+      scheduled_date: string | null
+      created_at: string
+    }[]
+
+    clientsMap.set(c.id, {
+      id: c.id,
+      name: c.name,
+      age: c.age || '',
+      phone: c.phone,
+      countryCode: c.country_code || '+91',
+      clientType: c.client_type as string,
+      address: c.address || '',
+      createdAt: new Date(c.created_at).toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      }),
+      totalAppointments: appts.length,
+      scheduledDate: latestDates.get(c.id) || '',
     })
-    .map((c) => {
-      const appts = c.appointments as unknown as {
-        id: string
-        status: string
-        scheduled_date: string | null
-        created_at: string
-      }[]
+  }
 
-      const latestDate = appts
-        .map((a) => a.scheduled_date)
-        .filter(Boolean)
-        .sort()
-        .pop() || ''
+  // Sort by latest appointment date (newest first), then paginate
+  const sorted = clientOrder
+    .filter((id) => clientsMap.has(id))
+    .map((id) => clientsMap.get(id))
 
-      return {
-        id: c.id,
-        name: c.name,
-        age: c.age || '',
-        phone: c.phone,
-        countryCode: c.country_code || '+91',
-        clientType: c.client_type as string,
-        address: c.address || '',
-        createdAt: new Date(c.created_at).toLocaleDateString('en-US', {
-          month: 'short',
-          day: 'numeric',
-          year: 'numeric',
-        }),
-        totalAppointments: appts.length,
-        scheduledDate: latestDate,
-      }
-    })
+  const paginated = sorted.slice(from, to + 1)
 
-  return { clients, total: count || 0, error: null }
+  return { clients: paginated, total: sorted.length, error: null }
 }
  
 // ─── Dashboard: latest 5 appointments (no pagination needed) ───
@@ -840,4 +840,52 @@ export async function getClientById(clientId: string) {
 
   if (error) return { error: error.message, client: null }
   return { client: data, error: null }
+}
+
+// Export all data for backup
+export async function getAllDataForExport() {
+  const { supabase, user } = await getAuthenticatedUser()
+
+  // Admin only
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+
+  if (profile?.role !== 'admin') return { error: 'Admin access required', data: null }
+
+  const [
+    { data: clients },
+    { data: appointments },
+    { data: applicationForms },
+    { data: studentIntake },
+    { data: parentsDetails },
+    { data: assessmentReports },
+    { data: mentalStatusExams },
+    { data: remediationEntries },
+  ] = await Promise.all([
+    supabase.from('clients').select('*').order('created_at', { ascending: false }),
+    supabase.from('appointments').select('*').order('created_at', { ascending: false }),
+    supabase.from('application_forms').select('*'),
+    supabase.from('student_intake').select('*'),
+    supabase.from('parents_details').select('*'),
+    supabase.from('assessment_reports').select('*'),
+    supabase.from('mental_status_exams').select('*'),
+    supabase.from('remediation_entries').select('*').order('sort_order', { ascending: true }),
+  ])
+
+  return {
+    error: null,
+    data: {
+      clients: clients || [],
+      appointments: appointments || [],
+      applicationForms: applicationForms || [],
+      studentIntake: studentIntake || [],
+      parentsDetails: parentsDetails || [],
+      assessmentReports: assessmentReports || [],
+      mentalStatusExams: mentalStatusExams || [],
+      remediationEntries: remediationEntries || [],
+    },
+  }
 }

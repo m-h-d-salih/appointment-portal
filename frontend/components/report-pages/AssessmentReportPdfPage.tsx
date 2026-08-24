@@ -36,10 +36,10 @@ const assessmentRows: { label: string; index: number }[] = [
   { label: "Number concept", index: 5 },
   { label: "General awareness", index: 6 },
   { label: "Age appropriate colour identification", index: 21 },
-  { label: "Attention", index: 7 },
-  { label: "Visual memory", index: 8 },
-  { label: "Verbal memory", index: 9 },
-  { label: "Reading (Level)", index: 10 },
+  { label: "Attention", index: 8 },          // was 7
+  { label: "Visual memory", index: 9 },      // was 8
+  { label: "Verbal memory", index: 10 },     // was 9
+  { label: "Reading (Level)", index: 11 },   // was 10
 ];
 
 const readingRows = [
