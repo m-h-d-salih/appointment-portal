@@ -841,3 +841,51 @@ export async function getClientById(clientId: string) {
   if (error) return { error: error.message, client: null }
   return { client: data, error: null }
 }
+
+// Export all data for backup
+export async function getAllDataForExport() {
+  const { supabase, user } = await getAuthenticatedUser()
+
+  // Admin only
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+
+  if (profile?.role !== 'admin') return { error: 'Admin access required', data: null }
+
+  const [
+    { data: clients },
+    { data: appointments },
+    { data: applicationForms },
+    { data: studentIntake },
+    { data: parentsDetails },
+    { data: assessmentReports },
+    { data: mentalStatusExams },
+    { data: remediationEntries },
+  ] = await Promise.all([
+    supabase.from('clients').select('*').order('created_at', { ascending: false }),
+    supabase.from('appointments').select('*').order('created_at', { ascending: false }),
+    supabase.from('application_forms').select('*'),
+    supabase.from('student_intake').select('*'),
+    supabase.from('parents_details').select('*'),
+    supabase.from('assessment_reports').select('*'),
+    supabase.from('mental_status_exams').select('*'),
+    supabase.from('remediation_entries').select('*').order('sort_order', { ascending: true }),
+  ])
+
+  return {
+    error: null,
+    data: {
+      clients: clients || [],
+      appointments: appointments || [],
+      applicationForms: applicationForms || [],
+      studentIntake: studentIntake || [],
+      parentsDetails: parentsDetails || [],
+      assessmentReports: assessmentReports || [],
+      mentalStatusExams: mentalStatusExams || [],
+      remediationEntries: remediationEntries || [],
+    },
+  }
+}
