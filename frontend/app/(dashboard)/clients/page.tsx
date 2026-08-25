@@ -116,6 +116,13 @@ export default function ClientsPage() {
     },
     { title: "Joined", key: "createdAt" },
     {
+  title: "Appointment Date",
+  key: "scheduledDate",
+  render: (row) => row.scheduledDate
+    ? new Date(row.scheduledDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+    : "—",
+},
+    {
       title: "Actions",
       key: "actions",
       render: (row) => (
