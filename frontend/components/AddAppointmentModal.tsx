@@ -501,7 +501,6 @@ export default function AddAppointmentModal({
       use12Hours
       className="w-full! rounded-md!"
       placeholder="Select time"
-      minuteStep={15}
     />
   </Form.Item>
 </div>
