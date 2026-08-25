@@ -939,6 +939,13 @@ export default function AppointmentsPage() {
     },
     { title: "Date", key: "createdAt" },
     {
+  title: "Scheduled",
+  key: "scheduledDate",
+  render: (row) => row.scheduledDate
+    ? new Date(row.scheduledDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+    : "—",
+},
+    {
       title: "Status",
       key: "status",
       render: (row) => (
