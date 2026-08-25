@@ -45,6 +45,7 @@ export async function createAppointment(values: {
   phone: string
   clientType: 'Student' | 'Client'
   scheduledDate?: string
+   scheduledTime?: string 
 }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -104,6 +105,7 @@ export async function createAppointment(values: {
       status: 'Pending',
       scheduled_date: values.scheduledDate || null,
       created_by: user.id,
+      scheduled_time: values.scheduledTime || null,
     })
     .select('id')
     .single()
@@ -144,7 +146,7 @@ export async function getAppointments(params?: {
     .from('appointments')
     .select(
       `
-      id, status, scheduled_date, notes, created_at,
+      id, status, scheduled_date,scheduled_time, notes, created_at,
       client:clients!inner (
         id, name, age, relative, address, country_code, phone, client_type
       )
@@ -205,6 +207,7 @@ if (search && search.trim()) {
       }),
       clientId: client.id || '',
       scheduledDate: apt.scheduled_date,
+      scheduledTime: apt.scheduled_time || '',
     }
   })
  
@@ -265,7 +268,7 @@ export async function getApprovedClients(params?: {
   // Step 1: Get client IDs with their latest scheduled date
   let appointmentQuery = supabase
     .from('appointments')
-    .select('client_id, scheduled_date')
+    .select('client_id, scheduled_date,scheduled_time')
     .eq('status', 'Accepted')
     .order('scheduled_date', { ascending: false })
 
@@ -284,10 +287,12 @@ export async function getApprovedClients(params?: {
 
   // Get unique client IDs ordered by their latest appointment date
   const clientOrder: string[] = []
+  const latestTimes = new Map<string, string>()
   const latestDates = new Map<string, string>()
   for (const apt of matchingAppointments) {
     if (!latestDates.has(apt.client_id)) {
       latestDates.set(apt.client_id, apt.scheduled_date || '')
+       latestTimes.set(apt.client_id, apt.scheduled_time || '')
       clientOrder.push(apt.client_id)
     }
   }
@@ -348,6 +353,7 @@ export async function getApprovedClients(params?: {
       }),
       totalAppointments: appts.length,
       scheduledDate: latestDates.get(c.id) || '',
+      scheduledTime: latestTimes.get(c.id) || '',
     })
   }
 
@@ -769,6 +775,7 @@ export async function updateAppointmentDetails(
     phone: string
     clientType: 'Student' | 'Client'
     scheduledDate?: string
+     scheduledTime?: string 
   }
 ) {
    const { supabase } = await getAuthenticatedUser()
@@ -793,7 +800,7 @@ export async function updateAppointmentDetails(
   if (values.scheduledDate) {
     const { error: aptError } = await supabase
       .from('appointments')
-      .update({ scheduled_date: values.scheduledDate })
+      .update({ scheduled_date: values.scheduledDate, scheduled_time: values.scheduledTime || undefined })
       .eq('id', appointmentId)
 
     if (aptError) return { error: aptError.message }

@@ -243,10 +243,19 @@ const assessmentLabels: Record<string, string> = {
     // ─── Sheet 2: Appointments ───
     const appointmentRows = data.appointments.map((a: any) => {
       const client = data.clients.find((c: any) => c.id === a.client_id);
+      let timeFormatted = "";
+        if (a.scheduled_time) {
+    const [h, m] = a.scheduled_time.split(":");
+    const hour = parseInt(h);
+    const ampm = hour >= 12 ? "PM" : "AM";
+    const hour12 = hour % 12 || 12;
+    timeFormatted = `${hour12}:${m} ${ampm}`;
+  }
       return {
         ...clientInfo(client),
         "Status": a.status,
         "Scheduled Date": a.scheduled_date || "",
+        "Scheduled Time": timeFormatted,
         "Created At": new Date(a.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
       };
     });

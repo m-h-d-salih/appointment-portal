@@ -64,6 +64,7 @@ export type Appointment = {
   createdAt: string;
   clientId: string; // new — links to the client record
    scheduledDate?: string;
+   scheduledTime?: string;
 };
 
 export function ClientDetails({
@@ -938,12 +939,21 @@ export default function AppointmentsPage() {
       ),
     },
     { title: "Date", key: "createdAt" },
-    {
+{
   title: "Scheduled",
   key: "scheduledDate",
-  render: (row) => row.scheduledDate
-    ? new Date(row.scheduledDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
-    : "—",
+  render: (row) => {
+    if (!row.scheduledDate) return "—";
+    const date = new Date(row.scheduledDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+    if (!row.scheduledTime) return date;
+    
+    // Convert 24h to 12h with AM/PM
+    const [h, m] = row.scheduledTime.split(":");
+    const hour = parseInt(h);
+    const ampm = hour >= 12 ? "PM" : "AM";
+    const hour12 = hour % 12 || 12;
+    return `${date}, ${hour12}:${m} ${ampm}`;
+  },
 },
     {
       title: "Status",
@@ -1086,6 +1096,7 @@ export default function AppointmentsPage() {
                 phone: appointmentToEdit.phone,
                 clientType: appointmentToEdit.clientType,
                  scheduledDate: appointmentToEdit.scheduledDate, 
+                 scheduledTime: appointmentToEdit.scheduledTime,
               }
             : undefined
         }
