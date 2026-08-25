@@ -18,6 +18,7 @@ type ClientRow = {
   createdAt: string;
   totalAppointments: number;
   scheduledDate: string;
+   scheduledTime: string;
 };
 
 const TYPE_OPTIONS = [
@@ -115,12 +116,20 @@ export default function ClientsPage() {
       ),
     },
     { title: "Joined", key: "createdAt" },
-    {
-  title: "Appointment Date",
+{
+  title: "Appointment",
   key: "scheduledDate",
-  render: (row) => row.scheduledDate
-    ? new Date(row.scheduledDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
-    : "—",
+  render: (row) => {
+    if (!row.scheduledDate) return "—";
+    const date = new Date(row.scheduledDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+    if (!row.scheduledTime) return date;
+    
+    const [h, m] = row.scheduledTime.split(":");
+    const hour = parseInt(h);
+    const ampm = hour >= 12 ? "PM" : "AM";
+    const hour12 = hour % 12 || 12;
+    return `${date}, ${hour12}:${m} ${ampm}`;
+  },
 },
     {
       title: "Actions",

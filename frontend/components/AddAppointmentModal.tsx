@@ -9,6 +9,7 @@ import {
   Select,
   Alert,
   DatePicker,
+  TimePicker 
 } from "antd";
 import {
   getCountries,
@@ -33,11 +34,13 @@ export type AppointmentFormValues = {
   phone: string;
   clientType: ClientType;
   scheduledDate?: string;
+   scheduledTime?: string;
 };
 
 type ModalFormValues = Omit<AppointmentFormValues, "scheduledDate"> & {
   country: Country;
   scheduledDate?: dayjs.Dayjs | null;
+  scheduledTime: any;
 };
 
 const blankForm: ModalFormValues = {
@@ -50,6 +53,7 @@ const blankForm: ModalFormValues = {
   phone: "",
   clientType: "Client",
   scheduledDate: dayjs(),
+  scheduledTime: null as unknown as string,
 };
 
 const themeConfig = {
@@ -168,6 +172,7 @@ export default function AddAppointmentModal({
       scheduledDate: initialValues.scheduledDate
         ? dayjs(initialValues.scheduledDate)
         : dayjs(),
+         scheduledTime: initialValues.scheduledTime ? dayjs(initialValues.scheduledTime, "HH:mm") : null,
     });
   }, [open, form, initialValues]);
 
@@ -219,13 +224,14 @@ export default function AddAppointmentModal({
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
-      const { country, scheduledDate, ...rest } = values;
+      const { country, scheduledDate,scheduledTime, ...rest } = values;
       onSubmit({
         ...rest,
         countryCode: `+${getCountryCallingCode(country)}`,
         scheduledDate: scheduledDate
           ? dayjs(scheduledDate).format("YYYY-MM-DD")
           : undefined,
+           scheduledTime: scheduledTime ? dayjs(scheduledTime).format("HH:mm") : undefined,
       });
     } catch {
       /* validation errors shown by antd */
@@ -471,23 +477,34 @@ export default function AddAppointmentModal({
                 className="min-h-24! rounded-md! resize-y!"
               />
             </Form.Item>
-            <Form.Item
-              label="Appointment Date"
-              name="scheduledDate"
-              className="sm:col-span-2"
-              rules={[
-                { required: true, message: "Appointment date is required" },
-              ]}
-            >
-              <DatePicker
-                format="DD/MM/YYYY"
-                className="w-full! rounded-md!"
-                disabledDate={(current) =>
-                  current && current < dayjs().startOf("day")
-                }
-                placeholder="Select appointment date"
-              />
-            </Form.Item>
+           <div className="grid grid-cols-1 gap-x-4 sm:grid-cols-2">
+  <Form.Item
+    label="Appointment Date"
+    name="scheduledDate"
+    rules={[{ required: true, message: "Date is required" }]}
+  >
+    <DatePicker
+      format="DD/MM/YYYY"
+      className="w-full! rounded-md!"
+      disabledDate={(current) => current && current < dayjs().startOf("day")}
+      placeholder="Select date"
+    />
+  </Form.Item>
+
+  <Form.Item
+    label="Appointment Time"
+    name="scheduledTime"
+    rules={[{ required: true, message: "Time is required" }]}
+  >
+    <TimePicker
+      format="hh:mm A"
+      use12Hours
+      className="w-full! rounded-md!"
+      placeholder="Select time"
+      minuteStep={15}
+    />
+  </Form.Item>
+</div>
           </div>
         </Form>
       </Modal>
