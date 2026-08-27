@@ -6,7 +6,7 @@ export async function getCurrentUser() {
 
   if (!user) return null
 
-  const { data: profile,error } = await supabase
+  const { data: profile } = await supabase
     .from('profiles')
     .select('*')
     .eq('id', user.id)
