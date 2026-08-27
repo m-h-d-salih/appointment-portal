@@ -14,11 +14,6 @@ export async function login(formData: FormData) {
   if (error) return { error: error.message }
 
   const { data: { user } } = await supabase.auth.getUser()
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user!.id)
-    .single()
 
   // Both roles go to dashboard, but admin gets full nav
   redirect('/dashboard')
