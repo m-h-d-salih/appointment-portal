@@ -445,17 +445,10 @@ export default function AddAppointmentModal({
               />
             </Form.Item>
 
-            <Form.Item label="Relative's name" name="relative">
+            <Form.Item label="Relative's name and phone" name="relative">
               <Input
-                type="text"
-                placeholder="Enter relative's name"
+                placeholder="Enter relative's name and phone"
                 className="rounded-md!"
-                onChange={(event) => {
-                  form.setFieldValue(
-                    "relative",
-                    event.target.value.replace(/[^\p{L}\s]/gu, ""),
-                  );
-                }}
               />
             </Form.Item>
 
@@ -477,33 +470,35 @@ export default function AddAppointmentModal({
                 className="min-h-24! rounded-md! resize-y!"
               />
             </Form.Item>
-           <div className="grid grid-cols-1 gap-x-4 sm:grid-cols-2">
-  <Form.Item
-    label="Appointment Date"
-    name="scheduledDate"
-    rules={[{ required: true, message: "Date is required" }]}
-  >
-    <DatePicker
-      format="DD/MM/YYYY"
-      className="w-full! rounded-md!"
-      disabledDate={(current) => current && current < dayjs().startOf("day")}
-      placeholder="Select date"
-    />
-  </Form.Item>
+            <div className="grid grid-cols-1 gap-x-4 sm:col-span-2 sm:grid-cols-2">
+              <Form.Item
+                label="Appointment Date"
+                name="scheduledDate"
+                rules={[{ required: true, message: "Date is required" }]}
+              >
+                <DatePicker
+                  format="DD/MM/YYYY"
+                  className="w-full! rounded-md!"
+                  disabledDate={(current) =>
+                    current && current < dayjs().startOf("day")
+                  }
+                  placeholder="Select date"
+                />
+              </Form.Item>
 
-  <Form.Item
-    label="Appointment Time"
-    name="scheduledTime"
-    rules={[{ required: true, message: "Time is required" }]}
-  >
-    <TimePicker
-      format="hh:mm A"
-      use12Hours
-      className="w-full! rounded-md!"
-      placeholder="Select time"
-    />
-  </Form.Item>
-</div>
+              <Form.Item
+                label="Appointment Time"
+                name="scheduledTime"
+                rules={[{ required: true, message: "Time is required" }]}
+              >
+                <TimePicker
+                  format="hh:mm A"
+                  use12Hours
+                  className="w-full! rounded-md!"
+                  placeholder="Select time"
+                />
+              </Form.Item>
+            </div>
           </div>
         </Form>
       </Modal>

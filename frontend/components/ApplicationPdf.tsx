@@ -786,7 +786,7 @@ async function prepareAssets() {
     ),
 
     relative: renderMalayalamText(
-      "അടുത്ത ബന്ധുവിന്റെ പേര്",
+      "അടുത്ത ബന്ധുവിന്റെ പേര്, ഫോൺ",
       {
         fontSize: 11.5,
         paddingY: 2,

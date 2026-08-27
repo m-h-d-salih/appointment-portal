@@ -105,7 +105,7 @@ export default function Sidebar({
           setShowAdd(true);
           onNavigate?.();
         }}
-        className="mb-8 flex items-center justify-center gap-2 rounded-md bg-[#2D5A3F] px-4 py-3 text-sm font-bold text-white shadow-md transition hover:bg-[#16482b]"
+        className="cursor-pointer mb-8 flex items-center justify-center gap-2 rounded-md bg-[#2D5A3F] px-4 py-3 text-sm font-bold text-white shadow-md transition hover:bg-[#16482b]"
       >
         <FiPlus className="h-4 w-4 shrink-0" />
         New Appointment

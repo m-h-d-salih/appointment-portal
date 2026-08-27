@@ -338,7 +338,7 @@ export function ClientDetails({
                   disabled={!isEditing("Application Form")}
                 />
                 <Field
-                  label="Relative's name"
+                  label="Relative's name and phone"
                   value={data.relative}
                   onChange={(v) => set("relative", v)}
                   disabled={!isEditing("Application Form")}
@@ -1056,7 +1056,7 @@ export default function AppointmentsPage() {
           </p>
         </div>
         <button
-          className="inline-flex w-full shrink-0 items-center justify-center gap-2 rounded-md bg-[#2D5A3F] px-4 py-3 text-sm font-bold text-white transition hover:bg-[#16482b] sm:h-fit sm:w-auto"
+          className="cursor-pointer inline-flex w-full shrink-0 items-center justify-center gap-2 rounded-md bg-[#2D5A3F] px-4 py-3 text-sm font-bold text-white transition hover:bg-[#16482b] sm:h-fit sm:w-auto"
           onClick={() => setShowAdd(true)}
         >
           <FiPlus /> Add Appointment
