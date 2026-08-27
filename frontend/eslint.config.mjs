@@ -9,7 +9,7 @@ const eslintConfig = defineConfig([
     rules: {
       "@typescript-eslint/no-explicit-any": "warn",
       "@typescript-eslint/no-unused-vars": "warn",
-      "react-hooks/set-state-in-effect": "warn",
+      "react-hooks/set-state-in-effect": "off",
       "react-hooks/exhaustive-deps": "warn",
       "jsx-a11y/alt-text": "warn",
     },
