@@ -26,10 +26,10 @@ type ClientRow = {
   createdAt: string;
   totalAppointments: number;
   scheduledDate: string;
-   scheduledTime: string;
-   hasPayment: boolean;
-   paymentSummary: { totalAmount: number; totalPaid: number } | null;
-   location: string;
+  scheduledTime: string;
+  hasPayment: boolean;
+  paymentSummary: { totalAmount: number; totalPaid: number } | null;
+  location: string;
 };
 
 const TYPE_OPTIONS = [
@@ -136,71 +136,91 @@ export default function ClientsPage() {
         <span className="font-medium">{row.totalAppointments}</span>
       ),
     },
-   {
-  title: "Payment Status",
-  key: "payment",
-  render: (row) => {
-    const cfg = paymentConfigs[row.id];
-    const summary = cfg
-      ? { totalAmount: cfg.totalAmount, totalPaid: cfg.payments.reduce((s, p) => s + p.amount, 0) }
-      : row.paymentSummary;
+    {
+      title: "Payment Status",
+      key: "payment",
+      render: (row) => {
+        const cfg = paymentConfigs[row.id];
+        const summary = cfg
+          ? {
+              totalAmount: cfg.totalAmount,
+              totalPaid: cfg.payments.reduce((s, p) => s + p.amount, 0),
+            }
+          : row.paymentSummary;
 
-    if (!summary || (summary.totalAmount === 0 && summary.totalPaid === 0)) {
-      return <span className="text-xs text-[#667362]">Not configured</span>;
-    }
+        if (
+          !summary ||
+          (summary.totalAmount === 0 && summary.totalPaid === 0)
+        ) {
+          return <span className="text-xs text-[#667362]">Not configured</span>;
+        }
 
-    const balance = Math.max(summary.totalAmount - summary.totalPaid, 0);
+        const balance = Math.max(summary.totalAmount - summary.totalPaid, 0);
 
-    return (
-      <div className="flex min-w-28 flex-col gap-1 text-[11px] leading-4">
-        <span className="inline-flex items-center justify-between gap-2 rounded-md bg-[#e8f7ee] px-2 py-1 font-bold text-[#144229]">
-          <span className="font-semibold uppercase tracking-wide text-[#2D5A3F]">Paid</span>
-          {rupee(summary.totalPaid)}
-        </span>
-        {summary.totalAmount > 0 && (
-          <>
-            <span className="inline-flex items-center justify-between gap-2 rounded-md bg-[#eef1ec] px-2 py-1 font-bold text-[#1a1c1a]">
-              <span className="font-semibold uppercase tracking-wide text-[#536350]">Total</span>
-              {rupee(summary.totalAmount)}
+        return (
+          <div className="flex min-w-28 flex-col gap-1 text-[11px] leading-4">
+            <span className="inline-flex items-center justify-between gap-2 rounded-md bg-[#e8f7ee] px-2 py-1 font-bold text-[#144229]">
+              <span className="font-semibold uppercase tracking-wide text-[#2D5A3F]">
+                Paid
+              </span>
+              {rupee(summary.totalPaid)}
             </span>
-            <span className={`inline-flex items-center justify-between gap-2 rounded-md px-2 py-1 font-bold ${
-              balance === 0 ? "bg-[#bceecb] text-[#144229]" : "bg-[#fff0c6] text-[#775a19]"
-            }`}>
-              <span className="font-semibold uppercase tracking-wide">Bal</span>
-              {rupee(balance)}
-            </span>
-          </>
-        )}
-      </div>
-    );
-  },
-},
+            {summary.totalAmount > 0 && (
+              <>
+                <span className="inline-flex items-center justify-between gap-2 rounded-md bg-[#eef1ec] px-2 py-1 font-bold text-[#1a1c1a]">
+                  <span className="font-semibold uppercase tracking-wide text-[#536350]">
+                    Total
+                  </span>
+                  {rupee(summary.totalAmount)}
+                </span>
+                <span
+                  className={`inline-flex items-center justify-between gap-2 rounded-md px-2 py-1 font-bold ${
+                    balance === 0
+                      ? "bg-[#bceecb] text-[#144229]"
+                      : "bg-[#fff0c6] text-[#775a19]"
+                  }`}
+                >
+                  <span className="font-semibold uppercase tracking-wide">
+                    Bal
+                  </span>
+                  {rupee(balance)}
+                </span>
+              </>
+            )}
+          </div>
+        );
+      },
+    },
     { title: "Joined", key: "createdAt" },
-{
-  title: "Appointment",
-  key: "scheduledDate",
-  render: (row) => {
-    if (!row.scheduledDate) return "—";
-    const date = new Date(row.scheduledDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-    if (!row.scheduledTime) return date;
-    
-    const [h, m] = row.scheduledTime.split(":");
-    const hour = parseInt(h);
-    const ampm = hour >= 12 ? "PM" : "AM";
-    const hour12 = hour % 12 || 12;
-    return `${date}, ${hour12}:${m} ${ampm}`;
-  },
-},
-{
-  title: "Location",
-  key: "location",
-  render: (row) =>
-    row.location === "Kodinhi Cheruppara, Malappuram"
-      ? "Kodinhi"
-      : row.location === "Zara Complex, Pantharangadi, Malappuram"
-        ? "Zara Complex"
-        : row.location || "—",
-},
+    {
+      title: "Appointment",
+      key: "scheduledDate",
+      render: (row) => {
+        if (!row.scheduledDate) return "—";
+        const date = new Date(row.scheduledDate).toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        });
+        if (!row.scheduledTime) return date;
+
+        const [h, m] = row.scheduledTime.split(":");
+        const hour = parseInt(h);
+        const ampm = hour >= 12 ? "PM" : "AM";
+        const hour12 = hour % 12 || 12;
+        return `${date}, ${hour12}:${m} ${ampm}`;
+      },
+    },
+    {
+      title: "Location",
+      key: "location",
+      render: (row) =>
+        row.location === "Kodinhi Cheruppara, Malappuram"
+          ? "Kodinhi"
+          : row.location === "Zara Complex, Pantharangadi, Malappuram"
+            ? "Zara Complex"
+            : row.location || "—",
+    },
     {
       title: "Actions",
       key: "actions",
@@ -212,32 +232,34 @@ export default function ClientsPage() {
             onClick={() =>
               router.push(`/client/viewdetails?id=${row.id}&from=clients`)
             }
-           >
-             View Details
-           </button>
-           <button
-             type="button"
-             className="reportbtn"
-             onClick={() => openReportModal(row)}
-           >
-             <FiDownload aria-hidden="true" /> Report
-           </button>
-           <button
-             type="button"
-             className="cursor-pointer inline-flex h-[34px] items-center gap-1.5 whitespace-nowrap rounded-[5px] border border-[#2d5a3f] bg-white px-3 text-xs font-bold text-[#144229] hover:bg-[#e8f7ee]"
-           onClick={async () => {
-  if (!paymentConfigs[row.id]) {
-    const { config } = await getClientPaymentConfig(row.id);
-    if (config) {
-      setPaymentConfigs((prev) => ({ ...prev, [row.id]: config }));
-    }
-  }
-  setPaymentClient(row);  // ← after fetch
-}}
-           >
-             <FiCreditCard aria-hidden="true" />
-             {(paymentConfigs[row.id] || row.hasPayment) ? "View History" : "Set Payment"}
-           </button>
+          >
+            View Details
+          </button>
+          <button
+            type="button"
+            className="reportbtn"
+            onClick={() => openReportModal(row)}
+          >
+            <FiDownload aria-hidden="true" /> Report
+          </button>
+          <button
+            type="button"
+            className="cursor-pointer inline-flex h-[34px] items-center gap-1.5 whitespace-nowrap rounded-[5px] border border-[#2d5a3f] bg-white px-3 text-xs font-bold text-[#144229] hover:bg-[#e8f7ee]"
+            onClick={async () => {
+              if (!paymentConfigs[row.id]) {
+                const { config } = await getClientPaymentConfig(row.id);
+                if (config) {
+                  setPaymentConfigs((prev) => ({ ...prev, [row.id]: config }));
+                }
+              }
+              setPaymentClient(row); // ← after fetch
+            }}
+          >
+            <FiCreditCard aria-hidden="true" />
+            {paymentConfigs[row.id] || row.hasPayment
+              ? "Payment History"
+              : "Set Payment"}
+          </button>
         </div>
       ),
     },
@@ -270,15 +292,15 @@ export default function ClientsPage() {
       />
 
       <section className="content-card">
- <DataTable
-  columns={columns}
-  data={clients}
-  loading={loading}
-  pageSize={pageSize}
-  total={total}
-  currentPage={page}
-  onPageChange={setPage}
-/>
+        <DataTable
+          columns={columns}
+          data={clients}
+          loading={loading}
+          pageSize={pageSize}
+          total={total}
+          currentPage={page}
+          onPageChange={setPage}
+        />
       </section>
 
       <ReportDownloadModal
@@ -292,40 +314,44 @@ export default function ClientsPage() {
         onClose={() => setReportClient(null)}
       />
 
-    <ClientPaymentModal
-  open={Boolean(paymentClient)}
-  client={paymentClient}
-  config={paymentClient ? paymentConfigs[paymentClient.id] : undefined}
-  onClose={() => setPaymentClient(null)}
- onSaveConfig={async (next) => {
-  if (!paymentClient) return;  // or paymentStudent for students page
+      <ClientPaymentModal
+        open={Boolean(paymentClient)}
+        client={paymentClient}
+        config={paymentClient ? paymentConfigs[paymentClient.id] : undefined}
+        onClose={() => setPaymentClient(null)}
+        onSaveConfig={async (next) => {
+          if (!paymentClient) return; // or paymentStudent for students page
 
-  const clientId = paymentClient.id;  // or paymentStudent.id
+          const clientId = paymentClient.id; // or paymentStudent.id
 
-  // Save total fee + notes
-  await saveClientPaymentConfig(clientId, next.totalAmount, next.notes || '');
+          // Save total fee + notes
+          await saveClientPaymentConfig(
+            clientId,
+            next.totalAmount,
+            next.notes || "",
+          );
 
-  // Find new payments (temporary IDs start with "pay-")
-  for (const payment of next.payments) {
-    if (payment.id.startsWith("pay-")) {
-      await addPaymentEntry(clientId, {
-        date: payment.date,
-        amount: payment.amount,
-        category: payment.category,
-        payment_method: payment.payment_method,
-        reference: payment.reference,
-        notes: payment.notes,
-      });
-    }
-  }
+          // Find new payments (temporary IDs start with "pay-")
+          for (const payment of next.payments) {
+            if (payment.id.startsWith("pay-")) {
+              await addPaymentEntry(clientId, {
+                date: payment.date,
+                amount: payment.amount,
+                category: payment.category,
+                payment_method: payment.payment_method,
+                reference: payment.reference,
+                notes: payment.notes,
+              });
+            }
+          }
 
-  // Re-fetch fresh data from Supabase
-  const { config } = await getClientPaymentConfig(clientId);
-  if (config) {
-    setPaymentConfigs((prev) => ({ ...prev, [clientId]: config }));
-  }
-}}
-/>
+          // Re-fetch fresh data from Supabase
+          const { config } = await getClientPaymentConfig(clientId);
+          if (config) {
+            setPaymentConfigs((prev) => ({ ...prev, [clientId]: config }));
+          }
+        }}
+      />
     </>
   );
 }

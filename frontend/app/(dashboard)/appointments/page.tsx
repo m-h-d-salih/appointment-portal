@@ -73,9 +73,9 @@ export type Appointment = {
   status: Status;
   createdAt: string;
   clientId: string; // new — links to the client record
-   scheduledDate?: string;
-   scheduledTime?: string;
-   location?: string;
+  scheduledDate?: string;
+  scheduledTime?: string;
+  location?: string;
   appointmentDays?: string[];
 };
 
@@ -108,8 +108,9 @@ export function ClientDetails({
   const [saving, setSaving] = useState(false);
   const [showReportDownload, setShowReportDownload] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [paymentConfig, setPaymentConfig] =
-    useState<ClientPaymentConfig | undefined>(undefined);
+  const [paymentConfig, setPaymentConfig] = useState<
+    ClientPaymentConfig | undefined
+  >(undefined);
 
   // TextGrid values for each section
   const [studentIntakeValues, setStudentIntakeValues] = useState<
@@ -299,7 +300,7 @@ export function ClientDetails({
                 onClick={() => setShowPaymentModal(true)}
               >
                 <FiCreditCard aria-hidden="true" />
-                {paymentConfig ? "View History" : "Set Payment"}
+                {paymentConfig ? "Payment History" : "Set Payment"}
               </button>
               <button
                 type="button"
@@ -890,7 +891,9 @@ export default function AppointmentsPage() {
     useState<AppointmentNotifyDetails | null>(null);
   const [query, setQuery] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
-  const [dateRange, setDateRange] = useState<[Dayjs | null, Dayjs | null] | null>([dayjs().startOf("day"), dayjs().endOf("day")]);
+  const [dateRange, setDateRange] = useState<
+    [Dayjs | null, Dayjs | null] | null
+  >([dayjs().startOf("day"), dayjs().endOf("day")]);
 
   const fetchAppointments = async () => {
     setLoading(true);
@@ -921,7 +924,7 @@ export default function AppointmentsPage() {
     window.addEventListener("appointment-created", fetchAppointments);
     return () =>
       window.removeEventListener("appointment-created", fetchAppointments);
-  },[]);
+  }, []);
 
   const [searchInput, setSearchInput] = useState("");
   useEffect(() => {
@@ -972,34 +975,44 @@ export default function AppointmentsPage() {
       ),
     },
     { title: "Date", key: "createdAt" },
-{
-  title: "Scheduled",
-  key: "scheduledDate",
-  render: (row) => {
-    if (!row.scheduledDate) return "—";
-    const date = new Date(row.scheduledDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-    if (!row.scheduledTime) return date;
-    
-    // Convert 24h to 12h with AM/PM
-    const [h, m] = row.scheduledTime.split(":");
-    const hour = parseInt(h);
-    const ampm = hour >= 12 ? "PM" : "AM";
-    const hour12 = hour % 12 || 12;
-    return `${date}, ${hour12}:${m} ${ampm}`;
-  },
-},
-{
-  title: "Location",
-  key: "location",
-  render: (row) => row.location === "Kodinhi Cheruppara, Malappuram" ? "Kodinhi" : row.location === "Zara Complex, Pantharangadi, Malappuram" ? "Zara Complex" : "—",
-},
-{
-  title: "Days",
-  key: "appointmentDays",
-  render: (row) => row.appointmentDays?.length
-    ? row.appointmentDays.map((d: string) => d.slice(0, 3)).join(", ")
-    : "—",
-},
+    {
+      title: "Scheduled",
+      key: "scheduledDate",
+      render: (row) => {
+        if (!row.scheduledDate) return "—";
+        const date = new Date(row.scheduledDate).toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        });
+        if (!row.scheduledTime) return date;
+
+        // Convert 24h to 12h with AM/PM
+        const [h, m] = row.scheduledTime.split(":");
+        const hour = parseInt(h);
+        const ampm = hour >= 12 ? "PM" : "AM";
+        const hour12 = hour % 12 || 12;
+        return `${date}, ${hour12}:${m} ${ampm}`;
+      },
+    },
+    {
+      title: "Location",
+      key: "location",
+      render: (row) =>
+        row.location === "Kodinhi Cheruppara, Malappuram"
+          ? "Kodinhi"
+          : row.location === "Zara Complex, Pantharangadi, Malappuram"
+            ? "Zara Complex"
+            : "—",
+    },
+    {
+      title: "Days",
+      key: "appointmentDays",
+      render: (row) =>
+        row.appointmentDays?.length
+          ? row.appointmentDays.map((d: string) => d.slice(0, 3)).join(", ")
+          : "—",
+    },
     {
       title: "Status",
       key: "status",
@@ -1153,10 +1166,10 @@ export default function AppointmentsPage() {
                 countryCode: appointmentToEdit.countryCode,
                 phone: appointmentToEdit.phone,
                 clientType: appointmentToEdit.clientType,
-                 scheduledDate: appointmentToEdit.scheduledDate, 
-                 scheduledTime: appointmentToEdit.scheduledTime,
-                 location: appointmentToEdit.location,              // ← add
-        appointmentDays: appointmentToEdit.appointmentDays,
+                scheduledDate: appointmentToEdit.scheduledDate,
+                scheduledTime: appointmentToEdit.scheduledTime,
+                location: appointmentToEdit.location, // ← add
+                appointmentDays: appointmentToEdit.appointmentDays,
               }
             : undefined
         }
