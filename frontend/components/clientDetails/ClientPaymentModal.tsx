@@ -12,6 +12,7 @@ import {
   InputNumber,
   Modal,
   Select,
+  Skeleton
 } from "antd";
 import dayjs, { type Dayjs } from "dayjs";
 import {
@@ -126,6 +127,7 @@ export default function ClientPaymentModal({
   client,
   config,
   historyOnly = false,
+  loading = false,
   onClose,
   onSaveConfig,
 }: {
@@ -134,9 +136,11 @@ export default function ClientPaymentModal({
     id: string;
     name: string;
     phone?: string;
+   
     clientType?: string;
   } | null;
   config?: ClientPaymentConfig;
+  loading?: boolean; 
   historyOnly?: boolean;
   onClose: () => void;
   onSaveConfig: (next: ClientPaymentConfig) => void;
@@ -362,8 +366,18 @@ export default function ClientPaymentModal({
         {error && (
           <Alert type="error" showIcon title={error} className="mb-3!" />
         )}
-
-        {showSetupForm ? (
+  
+        {loading ? (
+          <div className="space-y-5 py-4">
+            <div className="flex gap-4">
+              <Skeleton.Button active size="large" style={{ width: 200, height: 80, borderRadius: 12 }} />
+              <Skeleton.Button active size="large" style={{ width: 200, height: 80, borderRadius: 12 }} />
+              <Skeleton.Button active size="large" style={{ width: 200, height: 80, borderRadius: 12 }} />
+            </div>
+            <Skeleton active paragraph={{ rows: 1 }} title={false} />
+            <Skeleton active paragraph={{ rows: 4 }} title={{ width: 160 }} />
+          </div>
+        ) :showSetupForm ? (
           <Form
             form={setupForm}
             layout="vertical"

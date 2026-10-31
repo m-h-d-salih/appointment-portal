@@ -32,6 +32,7 @@ export default function PendingPaymentsTable({
   onUpdated?: () => void;
 }) {
   const [search, setSearch] = useState("");
+  const [paymentLoading, setPaymentLoading] = useState(false);
   const [selectedClient, setSelectedClient] =
     useState<PendingPaymentClient | null>(null);
   const [paymentConfig, setPaymentConfig] = useState<
@@ -56,22 +57,24 @@ export default function PendingPaymentsTable({
       render: (row) => <Tag color="gold">{money(row.pendingPaise)}</Tag>,
     },
     {
-      key: "actions",
-      title: "Action",
-      render: (row) => (
-        <button
-          type="button"
-          className="view-button whitespace-nowrap"
-          onClick={async () => {
-            setSelectedClient(row);
-            const { config } = await getClientPaymentConfig(row.id);
-            setPaymentConfig(config || undefined);
-          }}
-        >
-          View history
-        </button>
-      ),
-    },
+  key: "actions",
+  title: "Action",
+  render: (row) => (
+    <button
+      type="button"
+      className="view-button whitespace-nowrap"
+      onClick={async () => {
+        setPaymentLoading(true);
+        setSelectedClient(row);
+        const { config } = await getClientPaymentConfig(row.id);
+        setPaymentConfig(config || undefined);
+        setPaymentLoading(false);
+      }}
+    >
+      View history
+    </button>
+  ),
+},
   ];
 
   return (
@@ -108,6 +111,7 @@ export default function PendingPaymentsTable({
         }
         config={paymentConfig}
         historyOnly
+         loading={paymentLoading}
         onClose={() => {
           setSelectedClient(null);
           setPaymentConfig(undefined);

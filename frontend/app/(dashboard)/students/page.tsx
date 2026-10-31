@@ -129,12 +129,12 @@ useEffect(() => {
     return () => clearTimeout(timer);
   }, [searchInput]);
 
-  const visibleStudents = students.filter((student) => {
-    const count = attendanceRecords[student.id]?.length || 0;
-    if (attendanceFilter === "marked") return count > 0;
-    if (attendanceFilter === "unmarked") return count === 0;
-    return true;
-  });
+ const visibleStudents = students.filter((student) => {
+  const count = attendanceRecords[student.id]?.length ?? student.attendanceCount;
+  if (attendanceFilter === "marked") return count > 0;
+  if (attendanceFilter === "unmarked") return count === 0;
+  return true;
+});
 
   const columns: Column<StudentRow>[] = [
     {
