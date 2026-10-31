@@ -12,6 +12,7 @@ import {
   getClientPaymentConfig,
   saveClientPaymentConfig,
 } from "@/lib/actions/appointments";
+import { FiCreditCard } from "react-icons/fi";
 
 export type PendingPaymentClient = {
   id: string;
@@ -48,7 +49,11 @@ export default function PendingPaymentsTable({
   const columns: Column<PendingPaymentClient>[] = [
     { key: "name", title: "Client" },
     { key: "phone", title: "Phone", render: (row) => row.phone || "—" },
-    { key: "totalPaise", title: "Total fee", render: (row) => money(row.totalPaise) },
+    {
+      key: "totalPaise",
+      title: "Total fee",
+      render: (row) => money(row.totalPaise),
+    },
     { key: "paidPaise", title: "Paid", render: (row) => money(row.paidPaise) },
     {
       key: "pendingPaise",
@@ -61,14 +66,15 @@ export default function PendingPaymentsTable({
       render: (row) => (
         <button
           type="button"
-          className="view-button whitespace-nowrap"
+          className="cursor-pointer inline-flex h-[34px] items-center gap-1.5 whitespace-nowrap rounded-[5px] border border-[#2d5a3f] bg-white px-3 text-xs font-bold text-[#144229] hover:bg-[#e8f7ee]"
           onClick={async () => {
             setSelectedClient(row);
             const { config } = await getClientPaymentConfig(row.id);
             setPaymentConfig(config || undefined);
           }}
         >
-          View history
+          <FiCreditCard aria-hidden="true" />
+          Payment History
         </button>
       ),
     },

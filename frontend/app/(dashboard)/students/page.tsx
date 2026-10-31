@@ -13,11 +13,7 @@ import {
   getStudentAttendance,
   addStudentAttendance,
 } from "@/lib/actions/appointments";
-import {
-  FiCheckSquare,
-  FiCreditCard,
-  FiDownload,
-} from "react-icons/fi";
+import { FiCheckSquare, FiCreditCard, FiDownload } from "react-icons/fi";
 // import { FaWhatsapp } from "react-icons/fa";
 import AppointmentNotifyModal from "@/components/appointment/AppointmentNotifyModal";
 import {
@@ -45,8 +41,8 @@ type StudentRow = {
   scheduledTime: string;
   hasPayment: boolean;
   paymentSummary: { totalAmount: number; totalPaid: number } | null;
-   attendanceCount: number;
-   appointmentDays: string[];
+  attendanceCount: number;
+  appointmentDays: string[];
 };
 
 const ATTENDANCE_FILTER_OPTIONS = [
@@ -54,7 +50,6 @@ const ATTENDANCE_FILTER_OPTIONS = [
   { value: "marked", label: "Attendance Marked" },
   { value: "unmarked", label: "Not Marked Yet" },
 ];
-
 
 const rupee = (amount: number) =>
   new Intl.NumberFormat("en-IN", {
@@ -78,47 +73,48 @@ export default function StudentsPage() {
 
   const [reportStudent, setReportStudent] = useState<StudentRow | null>(null);
   const [paymentStudent, setPaymentStudent] = useState<StudentRow | null>(null);
-  const [attendanceStudent, setAttendanceStudent] =
-    useState<StudentRow | null>(null);
+  const [attendanceStudent, setAttendanceStudent] = useState<StudentRow | null>(
+    null,
+  );
   const [notifyDetails, setNotifyDetails] =
     useState<AppointmentNotifyDetails | null>(null);
 
-const [paymentConfigs, setPaymentConfigs] = useState<
-  Record<string, ClientPaymentConfig>
->({});
-const [attendanceRecords, setAttendanceRecords] = useState<
-  Record<string, StudentAttendanceRecord[]>
->({});
+  const [paymentConfigs, setPaymentConfigs] = useState<
+    Record<string, ClientPaymentConfig>
+  >({});
+  const [attendanceRecords, setAttendanceRecords] = useState<
+    Record<string, StudentAttendanceRecord[]>
+  >({});
 
-useEffect(() => {
-  async function fetchStudents() {
-    setLoading(true);
-    try {
-      const { clients: data, total: count } = await getApprovedClients({
-        page,
-        pageSize,
-        search: searchQuery || undefined,
-        clientType: "Student",
-        dateFrom: dateRange?.[0]?.format("YYYY-MM-DD") || undefined,
-        dateTo: dateRange?.[1]?.format("YYYY-MM-DD") || undefined,
-      });
-      setStudents(
-        data.map((c) => ({
-          ...c,
-          age: c.age || "—",
-          phone: `${c.countryCode} ${c.phone}`.trim(),
-        }))
-      );
-      setTotal(count);
-    } catch {
-      setStudents([]);
-      setTotal(0);
-    } finally {
-      setLoading(false);
+  useEffect(() => {
+    async function fetchStudents() {
+      setLoading(true);
+      try {
+        const { clients: data, total: count } = await getApprovedClients({
+          page,
+          pageSize,
+          search: searchQuery || undefined,
+          clientType: "Student",
+          dateFrom: dateRange?.[0]?.format("YYYY-MM-DD") || undefined,
+          dateTo: dateRange?.[1]?.format("YYYY-MM-DD") || undefined,
+        });
+        setStudents(
+          data.map((c) => ({
+            ...c,
+            age: c.age || "—",
+            phone: `${c.countryCode} ${c.phone}`.trim(),
+          })),
+        );
+        setTotal(count);
+      } catch {
+        setStudents([]);
+        setTotal(0);
+      } finally {
+        setLoading(false);
+      }
     }
-  }
-  fetchStudents();
-}, [page, searchQuery, dateRange]);
+    fetchStudents();
+  }, [page, searchQuery, dateRange]);
 
   const [searchInput, setSearchInput] = useState("");
   useEffect(() => {
@@ -164,62 +160,80 @@ useEffect(() => {
       title: "Appointments",
       key: "totalAppointments",
       render: (row) => (
-        <span className="font-semibold text-[#1a1c1a]">{row.totalAppointments}</span>
+        <span className="font-semibold text-[#1a1c1a]">
+          {row.totalAppointments}
+        </span>
       ),
     },
-   {
-  title: "Attendance",
-  key: "attendance",
-  render: (row) => {
-    const count = attendanceRecords[row.id]?.length ?? row.attendanceCount;
-    return count > 0 ? (
-      <span className="inline-block rounded-full bg-[#bceecb] px-2.5 py-0.5 text-xs font-bold text-[#144229]">
-        {count} marked
-      </span>
-    ) : (
-      <span className="text-xs text-[#667362]">Unmarked</span>
-    );
-  },
-},
-{
-  title: "Payment Status",
-  key: "payment",
-  render: (row) => {
-    const cfg = paymentConfigs[row.id];
-    const summary = cfg
-      ? { totalAmount: cfg.totalAmount, totalPaid: cfg.payments.reduce((s, p) => s + p.amount, 0) }
-      : row.paymentSummary;
+    {
+      title: "Attendance",
+      key: "attendance",
+      render: (row) => {
+        const count = attendanceRecords[row.id]?.length ?? row.attendanceCount;
+        return count > 0 ? (
+          <span className="inline-block rounded-full bg-[#bceecb] px-2.5 py-0.5 text-xs font-bold text-[#144229]">
+            {count} marked
+          </span>
+        ) : (
+          <span className="text-xs text-[#667362]">Unmarked</span>
+        );
+      },
+    },
+    {
+      title: "Payment Status",
+      key: "payment",
+      render: (row) => {
+        const cfg = paymentConfigs[row.id];
+        const summary = cfg
+          ? {
+              totalAmount: cfg.totalAmount,
+              totalPaid: cfg.payments.reduce((s, p) => s + p.amount, 0),
+            }
+          : row.paymentSummary;
 
-    if (!summary || (summary.totalAmount === 0 && summary.totalPaid === 0)) {
-      return <span className="text-xs text-[#667362]">Not configured</span>;
-    }
+        if (
+          !summary ||
+          (summary.totalAmount === 0 && summary.totalPaid === 0)
+        ) {
+          return <span className="text-xs text-[#667362]">Not configured</span>;
+        }
 
-    const balance = Math.max(summary.totalAmount - summary.totalPaid, 0);
+        const balance = Math.max(summary.totalAmount - summary.totalPaid, 0);
 
-    return (
-      <div className="flex min-w-28 flex-col gap-1 text-[11px] leading-4">
-        <span className="inline-flex items-center justify-between gap-2 rounded-md bg-[#e8f7ee] px-2 py-1 font-bold text-[#144229]">
-          <span className="font-semibold uppercase tracking-wide text-[#2D5A3F]">Paid</span>
-          {rupee(summary.totalPaid)}
-        </span>
-        {summary.totalAmount > 0 && (
-          <>
-            <span className="inline-flex items-center justify-between gap-2 rounded-md bg-[#eef1ec] px-2 py-1 font-bold text-[#1a1c1a]">
-              <span className="font-semibold uppercase tracking-wide text-[#536350]">Total</span>
-              {rupee(summary.totalAmount)}
+        return (
+          <div className="flex min-w-28 flex-col gap-1 text-[11px] leading-4">
+            <span className="inline-flex items-center justify-between gap-2 rounded-md bg-[#e8f7ee] px-2 py-1 font-bold text-[#144229]">
+              <span className="font-semibold uppercase tracking-wide text-[#2D5A3F]">
+                Paid
+              </span>
+              {rupee(summary.totalPaid)}
             </span>
-            <span className={`inline-flex items-center justify-between gap-2 rounded-md px-2 py-1 font-bold ${
-              balance === 0 ? "bg-[#bceecb] text-[#144229]" : "bg-[#fff0c6] text-[#775a19]"
-            }`}>
-              <span className="font-semibold uppercase tracking-wide">Bal</span>
-              {rupee(balance)}
-            </span>
-          </>
-        )}
-      </div>
-    );
-  },
-},
+            {summary.totalAmount > 0 && (
+              <>
+                <span className="inline-flex items-center justify-between gap-2 rounded-md bg-[#eef1ec] px-2 py-1 font-bold text-[#1a1c1a]">
+                  <span className="font-semibold uppercase tracking-wide text-[#536350]">
+                    Total
+                  </span>
+                  {rupee(summary.totalAmount)}
+                </span>
+                <span
+                  className={`inline-flex items-center justify-between gap-2 rounded-md px-2 py-1 font-bold ${
+                    balance === 0
+                      ? "bg-[#bceecb] text-[#144229]"
+                      : "bg-[#fff0c6] text-[#775a19]"
+                  }`}
+                >
+                  <span className="font-semibold uppercase tracking-wide">
+                    Bal
+                  </span>
+                  {rupee(balance)}
+                </span>
+              </>
+            )}
+          </div>
+        );
+      },
+    },
     { title: "Joined", key: "createdAt" },
     {
       title: "Appointment",
@@ -241,13 +255,13 @@ useEffect(() => {
       },
     },
     {
-  title: "Days",
-  key: "appointmentDays",
-  render: (row) =>
-    row.appointmentDays?.length
-      ? row.appointmentDays.map((d: string) => d.slice(0, 3)).join(", ")
-      : "—",
-},
+      title: "Days",
+      key: "appointmentDays",
+      render: (row) =>
+        row.appointmentDays?.length
+          ? row.appointmentDays.map((d: string) => d.slice(0, 3)).join(", ")
+          : "—",
+    },
     {
       title: "Actions",
       key: "actions",
@@ -276,39 +290,47 @@ useEffect(() => {
               Notify
             </button> */}
 
-         <button
-  type="button"
-  className="cursor-pointer inline-flex h-[34px] items-center gap-1.5 whitespace-nowrap rounded-[5px] bg-[#2D5A3F] px-3 text-xs font-bold text-white hover:bg-[#16482b]"
-  onClick={async () => {
-    if (!attendanceRecords[row.id]) {
-      const { records } = await getStudentAttendance(row.id);
-      setAttendanceRecords((prev) => ({ ...prev, [row.id]: records }));
-    }
-    setAttendanceStudent(row);
-  }}
->
-  <FiCheckSquare aria-hidden="true" />
-  {(attendanceRecords[row.id]?.length ?? row.attendanceCount) > 0
-    ? `Attendance (${attendanceRecords[row.id]?.length ?? row.attendanceCount})`
-    : "Mark Attendance"}
-</button>
+            <button
+              type="button"
+              className="cursor-pointer inline-flex h-[34px] items-center gap-1.5 whitespace-nowrap rounded-[5px] bg-[#2D5A3F] px-3 text-xs font-bold text-white hover:bg-[#16482b]"
+              onClick={async () => {
+                if (!attendanceRecords[row.id]) {
+                  const { records } = await getStudentAttendance(row.id);
+                  setAttendanceRecords((prev) => ({
+                    ...prev,
+                    [row.id]: records,
+                  }));
+                }
+                setAttendanceStudent(row);
+              }}
+            >
+              <FiCheckSquare aria-hidden="true" />
+              {(attendanceRecords[row.id]?.length ?? row.attendanceCount) > 0
+                ? `Attendance (${attendanceRecords[row.id]?.length ?? row.attendanceCount})`
+                : "Mark Attendance"}
+            </button>
 
-           <button
-  type="button"
-  className="cursor-pointer inline-flex h-[34px] items-center gap-1.5 whitespace-nowrap rounded-[5px] border border-[#2d5a3f] bg-white px-3 text-xs font-bold text-[#144229] hover:bg-[#e8f7ee]"
-onClick={async () => {
-  if (!paymentConfigs[row.id]) {
-    const { config } = await getClientPaymentConfig(row.id);
-    if (config) {
-      setPaymentConfigs((prev) => ({ ...prev, [row.id]: config }));
-    }
-  }
-  setPaymentStudent(row);  // ← after fetch
-}}
->
-  <FiCreditCard aria-hidden="true" />
-  {(paymentConfigs[row.id] || row.hasPayment) ? "View History" : "Set Payment"}
-</button>
+            <button
+              type="button"
+              className="cursor-pointer inline-flex h-[34px] items-center gap-1.5 whitespace-nowrap rounded-[5px] border border-[#2d5a3f] bg-white px-3 text-xs font-bold text-[#144229] hover:bg-[#e8f7ee]"
+              onClick={async () => {
+                if (!paymentConfigs[row.id]) {
+                  const { config } = await getClientPaymentConfig(row.id);
+                  if (config) {
+                    setPaymentConfigs((prev) => ({
+                      ...prev,
+                      [row.id]: config,
+                    }));
+                  }
+                }
+                setPaymentStudent(row); // ← after fetch
+              }}
+            >
+              <FiCreditCard aria-hidden="true" />
+              {paymentConfigs[row.id] || row.hasPayment
+                ? "Payment History"
+                : "Set Payment"}
+            </button>
 
             <button
               type="button"
@@ -370,78 +392,87 @@ onClick={async () => {
         onClose={() => setNotifyDetails(null)}
       />
 
-    <StudentAttendanceModal
-  open={Boolean(attendanceStudent)}
-  student={attendanceStudent}
-  records={
-    attendanceStudent ? attendanceRecords[attendanceStudent.id] || [] : []
-  }
-  onClose={() => setAttendanceStudent(null)}
-onSaveRecord={async (nextRecord) => {
-  if (!attendanceStudent) return;
+      <StudentAttendanceModal
+        open={Boolean(attendanceStudent)}
+        student={attendanceStudent}
+        records={
+          attendanceStudent ? attendanceRecords[attendanceStudent.id] || [] : []
+        }
+        onClose={() => setAttendanceStudent(null)}
+        onSaveRecord={async (nextRecord) => {
+          if (!attendanceStudent) return;
 
-  const result = await addStudentAttendance(attendanceStudent.id, {
-    attendanceNo: nextRecord.attendanceNo,
-    date: nextRecord.date,
-    paidAmount: nextRecord.paidAmount,
-    paymentMethod: nextRecord.paymentMethod,
-    notes: nextRecord.notes,
-  });
+          const result = await addStudentAttendance(attendanceStudent.id, {
+            attendanceNo: nextRecord.attendanceNo,
+            date: nextRecord.date,
+            paidAmount: nextRecord.paidAmount,
+            paymentMethod: nextRecord.paymentMethod,
+            notes: nextRecord.notes,
+          });
 
-  if (result.error) {
-    alert(result.error);
-    return;
-  }
+          if (result.error) {
+            alert(result.error);
+            return;
+          }
 
-  setAttendanceRecords((prev) => ({
-    ...prev,
-    [attendanceStudent.id]: [
-      { ...nextRecord, id: result.id! },
-      ...(prev[attendanceStudent.id] || []),
-    ],
-  }));
+          setAttendanceRecords((prev) => ({
+            ...prev,
+            [attendanceStudent.id]: [
+              { ...nextRecord, id: result.id! },
+              ...(prev[attendanceStudent.id] || []),
+            ],
+          }));
 
-  // If payment was made, re-fetch fresh payment config
-  if (nextRecord.paidAmount > 0) {
-    const { config } = await getClientPaymentConfig(attendanceStudent.id);
-    if (config) {
-      setPaymentConfigs((prev) => ({ ...prev, [attendanceStudent.id]: config }));
-    }
-  }
-}}
-/>
+          // If payment was made, re-fetch fresh payment config
+          if (nextRecord.paidAmount > 0) {
+            const { config } = await getClientPaymentConfig(
+              attendanceStudent.id,
+            );
+            if (config) {
+              setPaymentConfigs((prev) => ({
+                ...prev,
+                [attendanceStudent.id]: config,
+              }));
+            }
+          }
+        }}
+      />
 
-    <ClientPaymentModal
-  open={Boolean(paymentStudent)}
-  client={paymentStudent}
-  config={paymentStudent ? paymentConfigs[paymentStudent.id] : undefined}
-  onClose={() => setPaymentStudent(null)}
- onSaveConfig={async (next) => {
-  if (!paymentStudent) return;
+      <ClientPaymentModal
+        open={Boolean(paymentStudent)}
+        client={paymentStudent}
+        config={paymentStudent ? paymentConfigs[paymentStudent.id] : undefined}
+        onClose={() => setPaymentStudent(null)}
+        onSaveConfig={async (next) => {
+          if (!paymentStudent) return;
 
-  const clientId = paymentStudent.id;
+          const clientId = paymentStudent.id;
 
-  await saveClientPaymentConfig(clientId, next.totalAmount, next.notes || '');
+          await saveClientPaymentConfig(
+            clientId,
+            next.totalAmount,
+            next.notes || "",
+          );
 
-  for (const payment of next.payments) {
-    if (payment.id.startsWith("pay-")) {
-      await addPaymentEntry(clientId, {
-        date: payment.date,
-        amount: payment.amount,
-        category: payment.category,
-        payment_method: payment.payment_method,
-        reference: payment.reference,
-        notes: payment.notes,
-      });
-    }
-  }
+          for (const payment of next.payments) {
+            if (payment.id.startsWith("pay-")) {
+              await addPaymentEntry(clientId, {
+                date: payment.date,
+                amount: payment.amount,
+                category: payment.category,
+                payment_method: payment.payment_method,
+                reference: payment.reference,
+                notes: payment.notes,
+              });
+            }
+          }
 
-  const { config } = await getClientPaymentConfig(clientId);
-  if (config) {
-    setPaymentConfigs((prev) => ({ ...prev, [clientId]: config }));
-  }
-}}
-/>
+          const { config } = await getClientPaymentConfig(clientId);
+          if (config) {
+            setPaymentConfigs((prev) => ({ ...prev, [clientId]: config }));
+          }
+        }}
+      />
 
       <ReportDownloadModal
         key={
