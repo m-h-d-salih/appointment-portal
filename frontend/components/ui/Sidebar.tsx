@@ -38,7 +38,7 @@ const navigation:NavItem[] = [
   { href: "/dashboard", icon: FiGrid, label: "Dashboard", roles: ["admin", "staff"] },
   { href: "/appointments", icon: FiCalendar, label: "Appointments", roles: ["admin", "staff"] },
   { href: "/clients", icon: FiUsers, label: "Clients List", roles: ["admin"] },
-  { href: "/students", icon: FiBookOpen, label: "Students", roles: ["admin"] },
+  { href: "/students", icon: FiBookOpen, label: "Students", roles: ["admin","staff"] },
   { href: "/accounts", icon: FiDollarSign, label: "Accounts", roles: ["admin"] },
   { href: "/letters", icon: FiFileText, label: "Letters", roles: ["admin"] },
   // { href: "/profile", icon: FiUser, label: "My profile", roles: ["admin"] },

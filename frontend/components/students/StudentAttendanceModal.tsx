@@ -103,6 +103,7 @@ export default function StudentAttendanceModal({
   onClose,
   onSaveRecord,
   onDeleteRecord,
+  paymentConfigured = true
 }: {
   open: boolean;
   student: { id: string; name: string; phone?: string } | null;
@@ -110,6 +111,7 @@ export default function StudentAttendanceModal({
   onClose: () => void;
   onSaveRecord: (nextRecord: StudentAttendanceRecord) => void;
   onDeleteRecord?: (id: string) => void;
+   paymentConfigured?: boolean;
 }) {
   const [form] = Form.useForm<AttendanceFields>();
   const paidAmountValue = Form.useWatch("paidAmount", form);
@@ -321,18 +323,27 @@ export default function StudentAttendanceModal({
                   />
                 </Form.Item>
 
-                <Form.Item
-                  name="paidAmount"
-                  label="Amount Paid Today (₹) (optional)"
-                >
-                  <InputNumber
-                    min={0}
-                    max={100000000}
-                    precision={2}
-                    placeholder="0.00 (leave blank if no payment)"
-                    className="w-full! rounded-md!"
-                  />
-                </Form.Item>
+              <Form.Item
+  name="paidAmount"
+  label="Amount Paid Today (₹) (optional)"
+>
+  <div className="group relative">
+    <InputNumber
+      min={0}
+      max={100000000}
+      precision={2}
+      disabled={!paymentConfigured}
+      placeholder={paymentConfigured ? "0.00 (leave blank if no payment)" : "Admin needs to set the amount"}
+      className={`w-full! rounded-md! ${!paymentConfigured ? "cursor-not-allowed!" : ""}`}
+    />
+    {!paymentConfigured && (
+      <div className="pointer-events-none absolute -top-9 left-1/2 z-10 hidden -translate-x-1/2 whitespace-nowrap rounded-md bg-gray-800 px-2.5 py-1.5 text-xs font-medium text-white shadow-lg group-hover:block">
+        Admin needs to set the total fee first
+        <div className="absolute left-1/2 top-full -translate-x-1/2 border-4 border-transparent border-t-gray-800" />
+      </div>
+    )}
+  </div>
+</Form.Item>
 
                 <Form.Item name="paymentMethod" label="Payment Method">
                   <Select

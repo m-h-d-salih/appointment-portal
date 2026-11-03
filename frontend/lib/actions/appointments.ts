@@ -907,15 +907,15 @@ export async function getDashboardStats() {
  const { supabase, user } = await getAuthenticatedUser()
   const today = new Date().toISOString().split('T')[0]
 
-  const [total, pending, accepted, todays, clients, students, normals] = await Promise.all([
-    supabase.from('appointments').select('*', { count: 'exact', head: true }),
-    supabase.from('appointments').select('*', { count: 'exact', head: true }).eq('status', 'Pending'),
-    supabase.from('appointments').select('*', { count: 'exact', head: true }).eq('status', 'Accepted'),
-    supabase.from('appointments').select('*', { count: 'exact', head: true }).eq('scheduled_date', today),
-    supabase.from('clients').select('*', { count: 'exact', head: true }),
-    supabase.from('clients').select('*', { count: 'exact', head: true }).eq('client_type', 'Student'),
-    supabase.from('clients').select('*', { count: 'exact', head: true }).eq('client_type', 'Client'),
-  ])
+const [total, pending, accepted, todays, clients, students, normals] = await Promise.all([
+  supabase.from('appointments').select('*', { count: 'exact', head: true }),
+  supabase.from('appointments').select('*', { count: 'exact', head: true }).eq('status', 'Pending'),
+  supabase.from('appointments').select('*', { count: 'exact', head: true }).eq('status', 'Accepted'),
+  supabase.from('appointments').select('*', { count: 'exact', head: true }).eq('scheduled_date', today),
+  supabase.from('clients').select('id, appointments!inner(id)', { count: 'exact', head: true }).eq('is_deleted', false),
+  supabase.from('clients').select('id, appointments!inner(id)', { count: 'exact', head: true }).eq('client_type', 'Student').eq('is_deleted', false),
+  supabase.from('clients').select('id, appointments!inner(id)', { count: 'exact', head: true }).eq('client_type', 'Client').eq('is_deleted', false),
+])
 
   return {
     totalAppointments: total.count || 0,

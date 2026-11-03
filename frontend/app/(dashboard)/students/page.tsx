@@ -33,6 +33,7 @@ import StudentAttendanceModal, {
 } from "@/components/students/StudentAttendanceModal";
 import { Select,ConfigProvider } from "antd";
 import DeleteConfirmationModal from "@/components/ui/DeleteConfirmationModal";
+import { useRole } from "@/components/context/RoleContext";
 
 type StudentRow = {
   id: string;
@@ -67,6 +68,7 @@ const rupee = (amount: number) =>
 
 export default function StudentsPage() {
   const router = useRouter();
+  const role = useRole();
   const [students, setStudents] = useState<StudentRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -285,63 +287,71 @@ const visibleStudents = students.filter((student) => {
           ? row.appointmentDays.map((d: string) => d.slice(0, 3)).join(", ")
           : "—",
     },
-    {
-      title: "View Details",
-      key: "viewDetails",
-      render: (row) => (
+    // {
+    //   title: "View Details",
+    //   key: "viewDetails",
+    //   render: (row) => (
+    //     <button
+    //       type="button"
+    //       className="view-button"
+    //       onClick={() =>
+    //         router.push(`/client/viewdetails?id=${row.id}&from=students`)
+    //       }
+    //     >
+    //       View Details
+    //     </button>
+    //   ),
+    // },
+   {
+  title: "Actions",
+  key: "actions",
+  render: (row) => {
+    return (
+      <div className="table-actions">
+        {role === "admin" && (
+          <button
+            type="button"
+            className="view-button"
+            onClick={() =>
+              router.push(`/client/viewdetails?id=${row.id}&from=students`)
+            }
+          >
+            View Details
+          </button>
+        )}
+
+        <button
+          className="border-[#25D366]! bg-[#25D366]! inline-flex items-center justify-center gap-1.5 px-2.5! text-xs! font-bold text-white!"
+          title="Notify on WhatsApp"
+          aria-label={`Notify ${row.name} on WhatsApp`}
+          onClick={() => setNotifyDetails(toNotifyDetails(row))}
+        >
+          <FaWhatsapp />
+          Notify
+        </button>
+
         <button
           type="button"
-          className="view-button"
-          onClick={() =>
-            router.push(`/client/viewdetails?id=${row.id}&from=students`)
-          }
+          className="cursor-pointer inline-flex h-8.5 items-center gap-1.5 whitespace-nowrap rounded-[5px] bg-[#2D5A3F] px-3 text-xs font-bold text-white hover:bg-[#16482b]"
+          onClick={async () => {
+            if (!attendanceRecords[row.id]) {
+              const { records } = await getStudentAttendance(row.id);
+              setAttendanceRecords((prev) => ({
+                ...prev,
+                [row.id]: records,
+              }));
+            }
+            setAttendanceStudent(row);
+          }}
         >
-          View Details
+          <FiCheckSquare aria-hidden="true" />
+          {(attendanceRecords[row.id]?.length ?? row.attendanceCount) > 0
+            ? `Attendance (${attendanceRecords[row.id]?.length ?? row.attendanceCount})`
+            : "Mark Attendance"}
         </button>
-      ),
-    },
-    {
-      title: "Actions",
-      key: "actions",
-      render: (row) => {
-        const count = attendanceRecords[row.id]?.length || 0;
-        return (
-          <div className="table-actions">
 
-            <button
-              className="border-[#25D366]! bg-[#25D366]! inline-flex items-center justify-center gap-1.5 px-2.5! text-xs! font-bold text-white!"
-              title="Notify on WhatsApp"
-              aria-label={`Notify ${row.name} on WhatsApp`}
-              onClick={() =>
-                setNotifyDetails(
-                  toNotifyDetails({ ...row, clientType: "Student" }),
-                )
-              }
-            >
-              <FaWhatsapp />
-              Notify
-            </button>
-
-            <button
-              type="button"
-              className="cursor-pointer inline-flex h-8.5 items-center gap-1.5 whitespace-nowrap rounded-[5px] bg-[#2D5A3F] px-3 text-xs font-bold text-white hover:bg-[#16482b]"
-              onClick={async () => {
-                if (!attendanceRecords[row.id]) {
-                  const { records } = await getStudentAttendance(row.id);
-                  setAttendanceRecords((prev) => ({
-                    ...prev,
-                    [row.id]: records,
-                  }));
-                }
-                setAttendanceStudent(row);
-              }}
-            >
-              <FiCheckSquare aria-hidden="true" />
-              {(attendanceRecords[row.id]?.length ?? row.attendanceCount) > 0
-                ? `Attendance (${attendanceRecords[row.id]?.length ?? row.attendanceCount})`
-                : "Mark Attendance"}
-            </button>
-
+        {role === "admin" && (
+          <>
             <button
               type="button"
               className="cursor-pointer inline-flex h-8.5 items-center gap-1.5 whitespace-nowrap rounded-[5px] border border-[#2d5a3f] bg-white px-3 text-xs font-bold text-[#144229] hover:bg-[#e8f7ee]"
@@ -355,7 +365,7 @@ const visibleStudents = students.filter((student) => {
                     }));
                   }
                 }
-                setPaymentStudent(row); // ← after fetch
+                setPaymentStudent(row);
               }}
             >
               <FiCreditCard aria-hidden="true" />
@@ -371,23 +381,25 @@ const visibleStudents = students.filter((student) => {
             >
               <FiDownload aria-hidden="true" /> Report
             </button>
+
             <button
               type="button"
-              className="border-[#c9252d]! bg-[#c9252d]! flex items-center justify-center text-white! w-8.5 px-0!"
+              className="cursor-pointer rounded-md border border-red-200 bg-white p-1.5 text-red-500 hover:bg-red-50"
               title="Delete student"
-              aria-label={`Delete student ${row.name}`}
               onClick={async () => {
-    const deps = await getClientDependencies(row.id);
-    setDeleteDeps(deps);
-    setDeleteStudent(row);
-  }}
+                const deps = await getClientDependencies(row.id);
+                setDeleteDeps(deps);
+                setDeleteStudent(row);
+              }}
             >
-              <FiTrash2 />
+              <FiTrash2 className="h-3.5 w-3.5" />
             </button>
-          </div>
-        );
-      },
-    },
+          </>
+        )}
+      </div>
+    );
+  },
+},
   ];
 
   return (
@@ -461,6 +473,14 @@ const visibleStudents = students.filter((student) => {
         records={
           attendanceStudent ? attendanceRecords[attendanceStudent.id] || [] : []
         }
+          paymentConfigured={
+    attendanceStudent
+      ? Boolean(
+          (paymentConfigs[attendanceStudent.id]?.totalAmount ?? 0) > 0 ||
+          (attendanceStudent.paymentSummary?.totalAmount ?? 0) > 0
+        )
+      : true
+  }
         onClose={() => setAttendanceStudent(null)}
         onSaveRecord={async (nextRecord) => {
           if (!attendanceStudent) return;
