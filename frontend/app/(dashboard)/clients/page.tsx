@@ -11,10 +11,10 @@ import {
   saveClientPaymentConfig,
   addPaymentEntry,
   deletePaymentEntry,
-  softDeleteClient, 
-   getClientDependencies,
+  softDeleteClient,
+  getClientDependencies,
 } from "@/lib/actions/appointments";
-import { FiCreditCard, FiDownload,FiTrash2  } from "react-icons/fi";
+import { FiCreditCard, FiDownload, FiTrash2 } from "react-icons/fi";
 import { FaWhatsapp } from "react-icons/fa";
 import AppointmentNotifyModal from "@/components/appointment/AppointmentNotifyModal";
 import {
@@ -68,8 +68,12 @@ export default function ClientsPage() {
   const [paymentConfigs, setPaymentConfigs] = useState<
     Record<string, ClientPaymentConfig>
   >({});
-const [deleteClient, setDeleteClient] = useState<ClientRow | null>(null);
-const [deleteDeps, setDeleteDeps] = useState<{ appointments: number; payments: number; attendance: number } | null>(null);
+  const [deleteClient, setDeleteClient] = useState<ClientRow | null>(null);
+  const [deleteDeps, setDeleteDeps] = useState<{
+    appointments: number;
+    payments: number;
+    attendance: number;
+  } | null>(null);
   const rupee = (amount: number) =>
     new Intl.NumberFormat("en-IN", {
       style: "currency",
@@ -225,18 +229,18 @@ const [deleteDeps, setDeleteDeps] = useState<{ appointments: number; payments: n
         return `${date}, ${hour12}:${m} ${ampm}`;
       },
     },
-{
-  title: "Location",
-  key: "location",
-  render: (row) =>
-    row.location === "Kodinhi Cheruppara, Malappuram"
-      ? "Kodinhi"
-      : row.location === "Zara Complex, Pantharangadi, Malappuram"
-        ? "Zara Complex"
-        : row.location === "Online"
-          ? "Online"
-          : row.location || "—",
-},
+    {
+      title: "Location",
+      key: "location",
+      render: (row) =>
+        row.location === "Kodinhi Cheruppara, Malappuram"
+          ? "Kodinhi"
+          : row.location === "Zara Complex, Pathinarungal, Malappuram"
+            ? "Zara Complex"
+            : row.location === "Online"
+              ? "Online"
+              : row.location || "—",
+    },
     {
       title: "Days",
       key: "appointmentDays",
@@ -304,11 +308,11 @@ const [deleteDeps, setDeleteDeps] = useState<{ appointments: number; payments: n
             className="border-[#c9252d]! bg-[#c9252d]! flex items-center justify-center text-white! w-8.5 px-0!"
             title="Delete client"
             aria-label={`Delete client ${row.name}`}
-             onClick={async () => {
-    const deps = await getClientDependencies(row.id);
-    setDeleteDeps(deps);
-    setDeleteClient(row);
-  }}
+            onClick={async () => {
+              const deps = await getClientDependencies(row.id);
+              setDeleteDeps(deps);
+              setDeleteClient(row);
+            }}
           >
             <FiTrash2 />
           </button>
@@ -403,18 +407,21 @@ const [deleteDeps, setDeleteDeps] = useState<{ appointments: number; payments: n
             setPaymentConfigs((prev) => ({ ...prev, [clientId]: config }));
           }
         }}
-    onDeletePayment={async (paymentId) => {
-  if (!paymentClient) return;
-  const result = await deletePaymentEntry(paymentId);
-  if (result.error) {
-    alert(result.error);
-    return;
-  }
-  const { config } = await getClientPaymentConfig(paymentClient.id);
-  if (config) {
-    setPaymentConfigs((prev) => ({ ...prev, [paymentClient.id]: config }));
-  }
-}}
+        onDeletePayment={async (paymentId) => {
+          if (!paymentClient) return;
+          const result = await deletePaymentEntry(paymentId);
+          if (result.error) {
+            alert(result.error);
+            return;
+          }
+          const { config } = await getClientPaymentConfig(paymentClient.id);
+          if (config) {
+            setPaymentConfigs((prev) => ({
+              ...prev,
+              [paymentClient.id]: config,
+            }));
+          }
+        }}
       />
 
       <AppointmentNotifyModal
@@ -422,30 +429,35 @@ const [deleteDeps, setDeleteDeps] = useState<{ appointments: number; payments: n
         details={notifyDetails}
         onClose={() => setNotifyDetails(null)}
       />
- <DeleteConfirmationModal
-  open={!!deleteClient}
-  title="Delete this client?"
-  itemName={deleteClient?.name}
-  actionDescription={
-    deleteDeps && (deleteDeps.appointments > 0 || deleteDeps.payments > 0 || deleteDeps.attendance > 0)
-      ? `This client has ${deleteDeps.appointments} appointment${deleteDeps.appointments !== 1 ? "s" : ""}, ${deleteDeps.payments} payment${deleteDeps.payments !== 1 ? "s" : ""}, and ${deleteDeps.attendance} attendance record${deleteDeps.attendance !== 1 ? "s" : ""}. Deleting will hide them from all lists. Data is preserved and can be restored.`
-      : "Client will be hidden from all lists. Their data is preserved and can be restored."
-  }
-  onCancel={() => { setDeleteClient(null); setDeleteDeps(null); }}
-  onConfirm={async () => {
-    if (!deleteClient) return;
-    const result = await softDeleteClient(deleteClient.id);
-    if (result.error) {
-      alert(result.error);
-    } else {
-      setClients((prev) => prev.filter((c) => c.id !== deleteClient.id));
-      setTotal((prev) => prev - 1);
-    }
-    setDeleteClient(null);
-    setDeleteDeps(null);
-  }}
-/>
-
+      <DeleteConfirmationModal
+        open={!!deleteClient}
+        title="Delete this client?"
+        itemName={deleteClient?.name}
+        actionDescription={
+          deleteDeps &&
+          (deleteDeps.appointments > 0 ||
+            deleteDeps.payments > 0 ||
+            deleteDeps.attendance > 0)
+            ? `This client has ${deleteDeps.appointments} appointment${deleteDeps.appointments !== 1 ? "s" : ""}, ${deleteDeps.payments} payment${deleteDeps.payments !== 1 ? "s" : ""}, and ${deleteDeps.attendance} attendance record${deleteDeps.attendance !== 1 ? "s" : ""}. Deleting will hide them from all lists. Data is preserved and can be restored.`
+            : "Client will be hidden from all lists. Their data is preserved and can be restored."
+        }
+        onCancel={() => {
+          setDeleteClient(null);
+          setDeleteDeps(null);
+        }}
+        onConfirm={async () => {
+          if (!deleteClient) return;
+          const result = await softDeleteClient(deleteClient.id);
+          if (result.error) {
+            alert(result.error);
+          } else {
+            setClients((prev) => prev.filter((c) => c.id !== deleteClient.id));
+            setTotal((prev) => prev - 1);
+          }
+          setDeleteClient(null);
+          setDeleteDeps(null);
+        }}
+      />
     </>
   );
 }

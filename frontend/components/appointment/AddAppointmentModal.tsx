@@ -35,8 +35,8 @@ export type AppointmentFormValues = {
   phone: string;
   clientType: ClientType;
   scheduledDate?: string;
-   scheduledTime?: string;
-   location?: string;
+  scheduledTime?: string;
+  location?: string;
   appointmentDays?: string[];
 };
 
@@ -44,13 +44,19 @@ type ModalFormValues = Omit<AppointmentFormValues, "scheduledDate"> & {
   country: Country;
   scheduledDate?: dayjs.Dayjs | null;
   scheduledTime: any;
-   location: string;
+  location: string;
   appointmentDays: string[];
 };
 
 const LOCATIONS = [
-  { value: "Kodinhi Cheruppara, Malappuram", label: "Kodinhi Cheruppara, Malappuram" },
-  { value: "Zara Complex, Pantharangadi, Malappuram", label: "Zara Complex, Pantharangadi, Malappuram" },
+  {
+    value: "Kodinhi Cheruppara, Malappuram",
+    label: "Kodinhi Cheruppara, Malappuram",
+  },
+  {
+    value: "Zara Complex, Pathinarungal, Malappuram",
+    label: "Zara Complex, Pathinarungal, Malappuram",
+  },
   { value: "Online", label: "Online" },
 ];
 
@@ -75,7 +81,7 @@ const blankForm: ModalFormValues = {
   clientType: "Client",
   scheduledDate: dayjs(),
   scheduledTime: null as unknown as string,
-   location: "Kodinhi Cheruppara, Malappuram",
+  location: "Kodinhi Cheruppara, Malappuram",
   appointmentDays: [],
 };
 
@@ -159,7 +165,9 @@ export default function AddAppointmentModal({
 }: AddAppointmentModalProps) {
   const [form] = Form.useForm<ModalFormValues>();
   // Add this line at the top of the component, after other Form.useWatch calls:
-const clientType = Form.useWatch("clientType", form) as ClientType | undefined;
+  const clientType = Form.useWatch("clientType", form) as
+    | ClientType
+    | undefined;
   const selectedCountry = Form.useWatch("country", form) as Country | undefined;
   const [lookupStatus, setLookupStatus] = useState<
     "idle" | "searching" | "found" | "not_found"
@@ -197,9 +205,11 @@ const clientType = Form.useWatch("clientType", form) as ClientType | undefined;
       scheduledDate: initialValues.scheduledDate
         ? dayjs(initialValues.scheduledDate)
         : dayjs(),
-         scheduledTime: initialValues.scheduledTime ? dayjs(initialValues.scheduledTime, "HH:mm") : null,
-         location: initialValues.location || "Kodinhi Cheruppara, Malappuram",
-  appointmentDays: initialValues.appointmentDays || [],
+      scheduledTime: initialValues.scheduledTime
+        ? dayjs(initialValues.scheduledTime, "HH:mm")
+        : null,
+      location: initialValues.location || "Kodinhi Cheruppara, Malappuram",
+      appointmentDays: initialValues.appointmentDays || [],
     });
   }, [open, form, initialValues]);
 
@@ -223,11 +233,13 @@ const clientType = Form.useWatch("clientType", form) as ClientType | undefined;
         age: result.client.age || "",
         relative: result.client.relative || "",
         address: result.client.address || "",
-         clientType: result.client.client_type as ClientType,
-      ...(result.latestAppointment && {
-        location: result.latestAppointment.location || "Kodinhi Cheruppara, Malappuram",
-        appointmentDays: result.latestAppointment.appointmentDays || [],
-      }),
+        clientType: result.client.client_type as ClientType,
+        ...(result.latestAppointment && {
+          location:
+            result.latestAppointment.location ||
+            "Kodinhi Cheruppara, Malappuram",
+          appointmentDays: result.latestAppointment.appointmentDays || [],
+        }),
       });
     } else {
       setLookupStatus("not_found");
@@ -255,14 +267,16 @@ const clientType = Form.useWatch("clientType", form) as ClientType | undefined;
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
-      const { country, scheduledDate,scheduledTime, ...rest } = values;
+      const { country, scheduledDate, scheduledTime, ...rest } = values;
       onSubmit({
         ...rest,
         countryCode: `+${getCountryCallingCode(country)}`,
         scheduledDate: scheduledDate
           ? dayjs(scheduledDate).format("YYYY-MM-DD")
           : undefined,
-           scheduledTime: scheduledTime ? dayjs(scheduledTime).format("HH:mm") : undefined,
+        scheduledTime: scheduledTime
+          ? dayjs(scheduledTime).format("HH:mm")
+          : undefined,
       });
     } catch {
       /* validation errors shown by antd */
@@ -501,7 +515,7 @@ const clientType = Form.useWatch("clientType", form) as ClientType | undefined;
                 className="min-h-24! rounded-md! resize-y!"
               />
             </Form.Item>
-                        {/* Location */}
+            {/* Location */}
             <Form.Item
               label="Location"
               name="location"
@@ -516,28 +530,28 @@ const clientType = Form.useWatch("clientType", form) as ClientType | undefined;
             </Form.Item>
 
             {/* Multi-day selection for Students */}
-       {clientType === "Student" && (
-  <Form.Item
-    label="Appointment Days"
-    name="appointmentDays"
-    className="sm:col-span-2"
-    rules={[
-      {
-        validator: async (_, value) => {
-          if (initialValues?.appointmentDays?.length) return;
-          if (!value || value.length === 0) {
-            return Promise.reject("Select at least one day");
-          }
-        },
-      },
-    ]}
-  >
-    <Checkbox.Group
-      className="flex! flex-wrap! gap-3!"
-      options={WEEK_DAYS}
-    />
-  </Form.Item>
-)}
+            {clientType === "Student" && (
+              <Form.Item
+                label="Appointment Days"
+                name="appointmentDays"
+                className="sm:col-span-2"
+                rules={[
+                  {
+                    validator: async (_, value) => {
+                      if (initialValues?.appointmentDays?.length) return;
+                      if (!value || value.length === 0) {
+                        return Promise.reject("Select at least one day");
+                      }
+                    },
+                  },
+                ]}
+              >
+                <Checkbox.Group
+                  className="flex! flex-wrap! gap-3!"
+                  options={WEEK_DAYS}
+                />
+              </Form.Item>
+            )}
             <div className="grid grid-cols-1 gap-x-4 sm:col-span-2 sm:grid-cols-2">
               <Form.Item
                 label="Appointment Date"
