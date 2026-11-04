@@ -799,14 +799,15 @@ export async function getStorageUsage() {
 
 // Delete all appointment data older than a given date
 export async function deleteDataBeforeDate(beforeDate: string) {
-    const { supabase, user } = await getAuthenticatedUser()
-const { data: profile } = await supabase
+  const { supabase, user } = await getAuthenticatedUser()
+  const { data: profile } = await supabase
     .from('profiles')
     .select('role')
     .eq('id', user.id)
     .single()
 
   if (profile?.role !== 'admin') return { error: 'Admin access required', deleted: 0 }
+
   // Get appointments before the date
   const { data: oldAppointments } = await supabase
     .from('appointments')
@@ -830,7 +831,6 @@ const { data: profile } = await supabase
   const activeClientIds = new Set((activeClients || []).map((a) => a.client_id))
   const orphanedClientIds = clientIds.filter((id) => !activeClientIds.has(id))
 
-  // Delete in order (cascades handle related tables)
   // 1. Delete old appointments (cascades: application_forms, mental_status_exams, plan_entries)
   const { error: aptError } = await supabase
     .from('appointments')
@@ -839,13 +839,58 @@ const { data: profile } = await supabase
 
   if (aptError) return { error: aptError.message, deleted: 0 }
 
-  // 2. Delete orphaned clients (cascades: student_intake, parents_details, assessment_reports, remediation_entries)
+  // 2. Clean up orphaned clients — delete related data first, then soft-delete client
   if (orphanedClientIds.length > 0) {
+    // Delete student attendance for orphaned clients
+    await supabase
+      .from('student_attendance')
+      .delete()
+      .in('client_id', orphanedClientIds)
+
+    // Delete client payment configs for orphaned clients
+    await supabase
+      .from('client_payments')
+      .delete()
+      .in('client_id', orphanedClientIds)
+
+    // Void transactions for orphaned clients (soft delete — keeps audit trail)
+    await supabase
+      .from('transactions')
+      .update({ status: 'void', updated_at: new Date().toISOString() })
+      .in('client_id', orphanedClientIds)
+      .eq('status', 'active')
+
+    // Soft-delete orphaned clients
     await supabase
       .from('clients')
-      .delete()
+      .update({ is_deleted: true })
       .in('id', orphanedClientIds)
   }
+
+  // 3. Delete old bank transfers before the date
+  await supabase
+    .from('bank_transfers')
+    .delete()
+    .lt('created_at', beforeDate)
+
+  // 4. Hard-delete voided transactions before the date (already excluded from totals)
+  await supabase
+    .from('transaction_audit')
+    .delete()
+    .in('transaction_id',
+      (await supabase
+        .from('transactions')
+        .select('id')
+        .eq('status', 'void')
+        .lt('created_at', beforeDate)
+      ).data?.map((t) => t.id) || []
+    )
+
+  await supabase
+    .from('transactions')
+    .delete()
+    .eq('status', 'void')
+    .lt('created_at', beforeDate)
 
   return { deleted: oldAppointments.length, error: null }
 }
