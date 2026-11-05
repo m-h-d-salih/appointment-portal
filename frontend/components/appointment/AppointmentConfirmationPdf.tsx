@@ -282,7 +282,7 @@ export function AppointmentConfirmationPdf({
     { label: "DATE:", value: details.date, type: "date" as const },
     { label: "TIME:", value: details.time, type: "time" as const },
     { label: "LOCATION:", value: details.location, type: "location" as const },
-  ];
+  ].filter((row) => !(isStudent && row.type === "time"));
 
   return (
     <Document
@@ -415,9 +415,11 @@ export function toNotifyDetails(input: {
   location?: string;
   clientType?: string;
 }): AppointmentNotifyDetails {
+  const isStudent = input.clientType?.trim().toLowerCase() === "student";
+
   return {
     name: input.name.trim(),
-    date: formatAppointmentDate(input.scheduledDate),
+    date: isStudent ? "നാളെ" : formatAppointmentDate(input.scheduledDate),
     time: formatAppointmentTime(input.scheduledTime),
     location: input.location || CLINIC_LOCATION,
     countryCode: input.countryCode,
@@ -462,9 +464,7 @@ export function buildWhatsAppMessage(details: AppointmentNotifyDetails) {
       "",
       `വിദ്യാർത്ഥിയുടെ പേര്: ${toTitleCase(details.name)}`,
       `തീയതി: ${details.date}`,
-      `സമയം: ${details.time}`,
       `സ്ഥലം: ${details.location}`,
-    
     ].join("\n");
   }
 
