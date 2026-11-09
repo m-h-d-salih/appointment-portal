@@ -12,7 +12,8 @@ import {
   InputNumber,
   Modal,
   Select,
-  Skeleton
+  Skeleton,
+  Spin,
 } from "antd";
 import dayjs, { type Dayjs } from "dayjs";
 import {
@@ -145,7 +146,7 @@ export default function ClientPaymentModal({
   loading?: boolean; 
   historyOnly?: boolean;
   onClose: () => void;
-  onSaveConfig: (next: ClientPaymentConfig) => void;
+  onSaveConfig: (next: ClientPaymentConfig) => Promise<void> | void;
    onDeletePayment?: (paymentId: string) => void;
 }) {
   const [setupForm] = Form.useForm<SetupFormFields>();
@@ -153,6 +154,7 @@ export default function ClientPaymentModal({
   const [editingTotal, setEditingTotal] = useState(false);
   const [addingPayment, setAddingPayment] = useState(false);
   const [printing, setPrinting] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState("");
   const statementRef = useRef<HTMLDivElement>(null);
 
@@ -165,6 +167,7 @@ const showSetupForm = !historyOnly && isStudent && (!isConfigured || editingTota
     setError("");
     setEditingTotal(false);
     setAddingPayment(false);
+    setIsSaving(false);
   }, [open, client?.id]);
 
   useEffect(() => {
@@ -212,7 +215,7 @@ const showSetupForm = !historyOnly && isStudent && (!isConfigured || editingTota
   const totalFee = config?.totalAmount || 0;
   const balanceAmount = Math.max(totalFee - paidTotal, 0);
 
-  const handleSaveSetup = (values: SetupFormFields) => {
+  const handleSaveSetup = async (values: SetupFormFields) => {
     setError("");
     if (!values.totalAmount || values.totalAmount <= 0) {
       setError("Please enter a valid total fee amount.");
@@ -243,45 +246,55 @@ const showSetupForm = !historyOnly && isStudent && (!isConfigured || editingTota
           ]
         : existingPayments;
 
-    onSaveConfig({
-      totalAmount: Number(values.totalAmount),
-      notes: values.notes?.trim() || "",
-      payments: nextPayments,
-    });
-    setEditingTotal(false);
+    setIsSaving(true);
+    try {
+      await onSaveConfig({
+        totalAmount: Number(values.totalAmount),
+        notes: values.notes?.trim() || "",
+        payments: nextPayments,
+      });
+      setEditingTotal(false);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleAddPayment = async (values: AddPaymentFormFields) => {
-  const currentConfig = config || { totalAmount: 0, notes: "", payments: [] };
-  setError("");
+    const currentConfig = config || { totalAmount: 0, notes: "", payments: [] };
+    setError("");
 
-  if (!values.amount || values.amount <= 0) {
-    setError("Enter a valid payment amount.");
-    return;
-  }
+    if (!values.amount || values.amount <= 0) {
+      setError("Enter a valid payment amount.");
+      return;
+    }
 
-  const nextEntry: ClientPaymentEntry = {
-    id: `pay-${Date.now()}`,
-    date: values.date.format("YYYY-MM-DD"),
-    amount: Number(values.amount),
-    category: values.category,
-    payment_method: values.payment_method,
-    reference: values.reference?.trim() || "—",
-    notes: values.notes?.trim() || "",
+    const nextEntry: ClientPaymentEntry = {
+      id: `pay-${Date.now()}`,
+      date: values.date.format("YYYY-MM-DD"),
+      amount: Number(values.amount),
+      category: values.category,
+      payment_method: values.payment_method,
+      reference: values.reference?.trim() || "—",
+      notes: values.notes?.trim() || "",
+    };
+
+    setIsSaving(true);
+    try {
+      await onSaveConfig({
+        ...currentConfig,
+        payments: [nextEntry, ...currentConfig.payments],
+      });
+      paymentForm.resetFields();
+      paymentForm.setFieldsValue({
+        date: dayjs(),
+        category: categories.income[0],
+        payment_method: "Cash",
+      });
+      setAddingPayment(false);
+    } finally {
+      setIsSaving(false);
+    }
   };
-
-  await onSaveConfig({
-    ...currentConfig,
-    payments: [nextEntry, ...currentConfig.payments],
-  });
-  paymentForm.resetFields();
-  paymentForm.setFieldsValue({
-    date: dayjs(),
-    category: categories.income[0],
-    payment_method: "Cash",
-  });
-  setAddingPayment(false);
-};
 
   const handlePrintStatement = async () => {
     const paper =
@@ -329,7 +342,8 @@ const showSetupForm = !historyOnly && isStudent && (!isConfigured || editingTota
             </div>
           </div>
         }
-        onCancel={onClose}
+        onCancel={isSaving ? undefined : onClose}
+        closable={!isSaving}
         onOk={() => {
           if (showSetupForm) {
             setupForm.submit();
@@ -347,8 +361,17 @@ const showSetupForm = !historyOnly && isStudent && (!isConfigured || editingTota
               : "Done"
         }
         cancelText={showSetupForm || addingPayment ? "Cancel" : "Close"}
+        footer={
+          isSaving ? (
+            <div className="flex items-center justify-end gap-2 text-sm text-[#667362]">
+              <Spin size="small" />
+              Saving payment...
+            </div>
+          ) : undefined
+        }
         cancelButtonProps={{
           onClick: () => {
+            if (isSaving) return;
             if (editingTotal) {
               setEditingTotal(false);
               return;

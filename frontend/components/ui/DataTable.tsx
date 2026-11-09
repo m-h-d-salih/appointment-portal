@@ -21,6 +21,37 @@ interface DataTableProps<T> {
   onPageChange?: (page: number) => void;
 }
 
+function getPaginationItems(
+  currentPage: number,
+  totalPages: number,
+): Array<number | "ellipsis-start" | "ellipsis-end"> {
+  if (totalPages <= 7) {
+    return Array.from({ length: totalPages }, (_, index) => index + 1);
+  }
+
+  const firstVisiblePage = Math.floor((currentPage - 1) / 5) * 5 + 1;
+  const lastVisiblePage = Math.min(firstVisiblePage + 4, totalPages);
+  const items: Array<number | "ellipsis-start" | "ellipsis-end"> = [];
+
+  if (firstVisiblePage > 1) {
+    items.push(1, "ellipsis-start");
+  }
+
+  for (let page = firstVisiblePage; page <= lastVisiblePage; page += 1) {
+    items.push(page);
+  }
+
+  if (lastVisiblePage < totalPages - 2) {
+    items.push("ellipsis-end", totalPages - 1, totalPages);
+  } else {
+    for (let page = lastVisiblePage + 1; page <= totalPages; page += 1) {
+      items.push(page);
+    }
+  }
+
+  return items;
+}
+
 export function DataTable<T extends Record<string, any>>({
   columns,
   data,
@@ -190,19 +221,29 @@ export function DataTable<T extends Record<string, any>>({
                 <FiChevronLeft className="h-4 w-4" />
               </button>
 
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((pg) => (
-                <button
-                  key={pg}
-                  onClick={() => handlePageChange(pg)}
-                  className={`cursor-pointer inline-flex h-8 w-8 items-center justify-center rounded-md text-xs font-semibold transition-colors ${
-                    activePage === pg
-                      ? "bg-[#144229] text-white"
-                      : "border border-[#c1c9c0] bg-white text-[#414942] hover:bg-neutral-50"
-                  }`}
-                >
-                  {pg}
-                </button>
-              ))}
+              {getPaginationItems(activePage, totalPages).map((item) =>
+                typeof item === "number" ? (
+                  <button
+                    key={item}
+                    onClick={() => handlePageChange(item)}
+                    className={`cursor-pointer inline-flex h-8 w-8 items-center justify-center rounded-md text-xs font-semibold transition-colors ${
+                      activePage === item
+                        ? "bg-[#144229] text-white"
+                        : "border border-[#c1c9c0] bg-white text-[#414942] hover:bg-neutral-50"
+                    }`}
+                  >
+                    {item}
+                  </button>
+                ) : (
+                  <span
+                    key={item}
+                    className="inline-flex h-8 w-5 items-center justify-center text-xs font-semibold text-[#69746d]"
+                    aria-hidden="true"
+                  >
+                    …
+                  </span>
+                ),
+              )}
 
               <button
                 onClick={() => handlePageChange(activePage + 1)}

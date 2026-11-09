@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { CgProfile } from "react-icons/cg";
 import { FiLogOut, FiUser } from "react-icons/fi";
+import { toTitleCase } from "@/components/helper/titlecase";
 
 type ProfileMenuProps = {
   email: string;
@@ -49,7 +50,9 @@ export default function ProfileMenu({ email, role }: ProfileMenuProps) {
         <div className="absolute right-0 z-50 mt-2 w-52 overflow-hidden rounded-md border border-[#c1c9c0] bg-white shadow-[0_12px_32px_rgba(23,32,42,0.12)]">
           <div className="border-b border-[#e5e7eb] px-4 py-3">
             <p className="m-0 text-sm font-semibold text-[#1a1c1a]">{email}</p>
-            <p className="m-0 mt-0.5 text-xs text-[#69746d]">{role}</p>
+            <p className="m-0 mt-0.5 text-xs text-[#144229] font-bold">
+              {toTitleCase(role)}
+            </p>
           </div>
 
           <div className="p-1.5">

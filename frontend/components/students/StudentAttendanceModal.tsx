@@ -11,6 +11,7 @@ import {
   InputNumber,
   Modal,
   Select,
+  Spin,
 } from "antd";
 import dayjs, { type Dayjs } from "dayjs";
 import {
@@ -23,6 +24,7 @@ import {
    FiTrash2,
 } from "react-icons/fi";
 import { paymentMethods } from "@/lib/accounts/constants";
+import DeleteConfirmationModal from "@/components/ui/DeleteConfirmationModal";
 import { toTitleCase } from "../helper/titlecase";
 
 export type StudentAttendanceRecord = {
@@ -109,14 +111,19 @@ export default function StudentAttendanceModal({
   student: { id: string; name: string; phone?: string } | null;
   records: StudentAttendanceRecord[];
   onClose: () => void;
-  onSaveRecord: (nextRecord: StudentAttendanceRecord) => void;
-  onDeleteRecord?: (id: string) => void;
+  onSaveRecord: (
+    nextRecord: StudentAttendanceRecord,
+  ) => Promise<boolean | void> | boolean | void;
+  onDeleteRecord?: (id: string) => Promise<void> | void;
    paymentConfigured?: boolean;
 }) {
   const [form] = Form.useForm<AttendanceFields>();
   const paidAmountValue = Form.useWatch("paidAmount", form);
   const [error, setError] = useState("");
   const [showForm, setShowForm] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [deleteRecord, setDeleteRecord] =
+    useState<StudentAttendanceRecord | null>(null);
 
   const nextAttendanceNo = records.length + 1;
   const totalPaid = records.reduce(
@@ -137,27 +144,34 @@ export default function StudentAttendanceModal({
     });
   }, [open, student, records.length, form]);
 
-  const handleMarkAttendance = (values: AttendanceFields) => {
+  const handleMarkAttendance = async (values: AttendanceFields) => {
     setError("");
+    setIsSaving(true);
     const paid = Number(values.paidAmount || 0);
 
-    onSaveRecord({
-      id: `att-${Date.now()}`,
-      attendanceNo: Number(values.attendanceNo || nextAttendanceNo),
-      date: values.date.format("YYYY-MM-DD"),
-      paidAmount: paid > 0 ? paid : 0,
-      paymentMethod: paid > 0 ? values.paymentMethod || "Cash" : undefined,
-      notes: values.notes?.trim() || "",
-    });
+    try {
+      const saved = await onSaveRecord({
+        id: `att-${Date.now()}`,
+        attendanceNo: Number(values.attendanceNo || nextAttendanceNo),
+        date: values.date.format("YYYY-MM-DD"),
+        paidAmount: paid > 0 ? paid : 0,
+        paymentMethod: paid > 0 ? values.paymentMethod || "Cash" : undefined,
+        notes: values.notes?.trim() || "",
+      });
 
-    form.setFieldsValue({
-      attendanceNo: records.length + 2,
-      date: dayjs(),
-      paidAmount: undefined,
-      paymentMethod: "Cash",
-      notes: "",
-    });
-    setShowForm(false);
+      if (saved !== false) {
+        form.setFieldsValue({
+          attendanceNo: records.length + 2,
+          date: dayjs(),
+          paidAmount: undefined,
+          paymentMethod: "Cash",
+          notes: "",
+        });
+        setShowForm(false);
+      }
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -189,13 +203,22 @@ export default function StudentAttendanceModal({
             </div>
           </div>
         }
-        onCancel={onClose}
+        onCancel={isSaving ? undefined : onClose}
+        closable={!isSaving}
         onOk={() => {
           if (showForm) form.submit();
           else onClose();
         }}
         okText={showForm ? "Mark Attendance" : "Done"}
         cancelText="Close"
+        footer={
+          isSaving ? (
+            <div className="flex items-center justify-end gap-2 text-sm text-[#667362]">
+              <Spin size="small" />
+              Saving attendance...
+            </div>
+          ) : undefined
+        }
         cancelButtonProps={{
           className:
             "h-11! border-[#c1c9c0]! text-[#414942]! hover:border-[#2D5A3F]! hover:text-[#2D5A3F]!",
@@ -442,11 +465,7 @@ export default function StudentAttendanceModal({
       type="button"
       className="cursor-pointer rounded-md border border-red-200 bg-white p-1.5 text-red-500 hover:bg-red-50"
       title="Delete attendance"
-      onClick={() => {
-        if (confirm(`Delete attendance #${rec.attendanceNo}?`)) {
-          onDeleteRecord(rec.id);
-        }
-      }}
+      onClick={() => setDeleteRecord(rec)}
     >
       <FiTrash2 className="h-3.5 w-3.5" />
     </button>
@@ -468,6 +487,19 @@ export default function StudentAttendanceModal({
           </div>
         </div>
       </Modal>
+      <DeleteConfirmationModal
+        open={deleteRecord !== null}
+        itemName={
+          deleteRecord ? `attendance #${deleteRecord.attendanceNo}` : undefined
+        }
+        title="Delete attendance?"
+        onCancel={() => setDeleteRecord(null)}
+        onConfirm={async () => {
+          if (!deleteRecord || !onDeleteRecord) return;
+          await onDeleteRecord(deleteRecord.id);
+          setDeleteRecord(null);
+        }}
+      />
     </ConfigProvider>
   );
 }
