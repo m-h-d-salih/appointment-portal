@@ -58,9 +58,9 @@ export async function createAppointment(values: {
   phone: string
   clientType: 'Student' | 'Client'
   scheduledDate?: string
-   scheduledTime?: string 
-   location?: string           // ← add
-  appointmentDays?: string[]  
+  scheduledTime?: string
+  location?: string
+  appointmentDays?: string[]
 }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -69,14 +69,14 @@ export async function createAppointment(values: {
   // Check if client already exists by phone
   const { data: existingClient } = await supabase
     .from('clients')
-    .select('id')
+    .select('id, is_deleted')
     .eq('phone', values.phone)
     .single()
 
   let clientId: string
 
-  if (existingClient) {
-    // Update existing client info
+  if (existingClient && !existingClient.is_deleted) {
+    // Active client — update info
     const { error: updateError } = await supabase
       .from('clients')
       .update({
@@ -92,6 +92,14 @@ export async function createAppointment(values: {
     if (updateError) return { error: updateError.message }
     clientId = existingClient.id
   } else {
+    // If deleted client exists with same phone, clear their phone first
+    if (existingClient?.is_deleted) {
+      await supabase
+        .from('clients')
+        .update({ phone: `deleted_${existingClient.id.slice(0, 8)}_${values.phone}` })
+        .eq('id', existingClient.id)
+    }
+
     // Create new client
     const { data: newClient, error: clientError } = await supabase
       .from('clients')
