@@ -178,6 +178,7 @@ export async function getAppointments(params?: {
     `,
       { count: 'exact' },
     )
+    .eq('client.is_deleted', false)
     .order('created_at', { ascending: false })
     .range(from, to)
  
