@@ -314,6 +314,7 @@ const summary = cfg
     //     </button>
     //   ),
     // },
+
     {
       title: "Actions",
       key: "actions",
@@ -444,6 +445,7 @@ const summary = cfg
         );
       },
     },
+
   ];
 
   return (
@@ -517,6 +519,7 @@ const summary = cfg
         records={
           attendanceStudent ? attendanceRecords[attendanceStudent.id] || [] : []
         }
+
         paymentConfigured={
           attendanceStudent
             ? Boolean(
@@ -525,6 +528,7 @@ const summary = cfg
               )
             : true
         }
+
         onClose={() => setAttendanceStudent(null)}
         onSaveRecord={async (nextRecord) => {
           if (!attendanceStudent) return;

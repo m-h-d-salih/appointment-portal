@@ -111,6 +111,7 @@ export default function StudentAttendanceModal({
   student: { id: string; name: string; phone?: string } | null;
   records: StudentAttendanceRecord[];
   onClose: () => void;
+
   onSaveRecord: (
     nextRecord: StudentAttendanceRecord,
   ) => Promise<boolean | void> | boolean | void;
