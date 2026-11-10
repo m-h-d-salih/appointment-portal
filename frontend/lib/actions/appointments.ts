@@ -263,6 +263,172 @@ export async function deleteAppointment(appointmentId: string) {
 }
 
 // Fetch clients who have at least one accepted appointment
+// export async function getApprovedClients(params?: {
+//   page?: number
+//   pageSize?: number
+//   search?: string
+//   clientType?: string
+//   dateFrom?: string
+//   dateTo?: string
+// }) {
+//   const supabase = await createClient()
+//   const {
+//     page = 1,
+//     pageSize = 10,
+//     search,
+//     clientType,
+//     dateFrom,
+//     dateTo,
+//   } = params || {}
+
+//   const from = (page - 1) * pageSize
+//   const to = from + pageSize - 1
+
+//   // Step 1: Get client IDs with their latest scheduled date
+//   let appointmentQuery = supabase
+//     .from('appointments')
+//     .select('client_id, scheduled_date,scheduled_time,location,appointment_days')
+//     .eq('status', 'Accepted')
+//     .order('scheduled_date', { ascending: false })
+
+//   if (dateFrom) {
+//     appointmentQuery = appointmentQuery.gte('scheduled_date', dateFrom)
+//   }
+//   if (dateTo) {
+//     appointmentQuery = appointmentQuery.lte('scheduled_date', dateTo)
+//   }
+
+//   const { data: matchingAppointments } = await appointmentQuery
+
+//   if (!matchingAppointments || matchingAppointments.length === 0) {
+//     return { clients: [], total: 0, error: null }
+//   }
+
+//   // Get unique client IDs ordered by their latest appointment date
+//   const clientOrder: string[] = []
+//   const latestTimes = new Map<string, string>()
+//   const latestDates = new Map<string, string>()
+//   const latestLocations = new Map<string, string>() 
+//   const latestDays = new Map<string, string[]>()
+//   for (const apt of matchingAppointments) {
+//     if (!latestDates.has(apt.client_id)) {
+//       latestDates.set(apt.client_id, apt.scheduled_date || '')
+//        latestTimes.set(apt.client_id, apt.scheduled_time || '')
+//         latestLocations.set(apt.client_id, apt.location || '')
+//          latestDays.set(apt.client_id, apt.appointment_days || []) 
+//       clientOrder.push(apt.client_id)
+//     }
+//   }
+
+//   // Step 2: Query clients
+//   let query = supabase
+//     .from('clients')
+//     .select(
+//       `
+//       id, name, age, phone, country_code, client_type, address, created_at,
+//       appointments!inner (
+//         id, status, scheduled_date, created_at
+//       )
+//     `,
+//       { count: 'exact' },
+//     )
+//     .eq('appointments.status', 'Accepted')
+//     .eq('is_deleted', false)
+//     .in('id', clientOrder)
+
+//   if (clientType && clientType !== 'all') {
+//     query = query.eq('client_type', clientType)
+//   }
+
+//   if (search && search.trim()) {
+//     query = query.or(`name.ilike.%${search.trim()}%,phone.ilike.%${search.trim()}%`)
+//   }
+
+//   const { data, count, error } = await query
+
+//   if (error) return { error: error.message, clients: [], total: 0 }
+
+// const { data: paymentData } = await supabase
+//   .from('client_payments')
+//   .select('client_id, total_amount')
+
+// const { data: allPaymentEntries } = await supabase
+//   .from('transactions')
+//   .select('client_id, amount_paise,category')
+//   .eq('type', 'income')
+//   .neq('status', 'void')
+//   .not('client_id', 'is', null)
+
+// const paymentTotals = new Map<string, { totalAmount: number; totalPaid: number }>()
+// const { data: attendanceData } = await supabase
+//   .from('student_attendance')
+//   .select('client_id')
+
+// const attendanceCounts = new Map<string, number>()
+// for (const a of (attendanceData || [])) {
+//   attendanceCounts.set(a.client_id, (attendanceCounts.get(a.client_id) || 0) + 1)
+// }
+// for (const p of (paymentData || [])) {
+//   paymentTotals.set(p.client_id, { totalAmount: Number(p.total_amount), totalPaid: 0 })
+// }
+// for (const e of (allPaymentEntries || [])) {
+//   if (!e.client_id) continue
+//   const existing = paymentTotals.get(e.client_id)
+//   if (existing) {
+//     existing.totalPaid += Number(e.amount_paise) / 100
+//   } else {
+//     paymentTotals.set(e.client_id, { totalAmount: 0, totalPaid: Number(e.amount_paise) / 100 })
+//   }
+// }
+
+// const clientsWithPayment = new Set(paymentTotals.keys())
+//   const seen = new Set<string>()
+//   const clientsMap = new Map<string, any>()
+
+//   for (const c of (data || [])) {
+//     if (seen.has(c.id)) continue
+//     seen.add(c.id)
+
+//     const appts = c.appointments as unknown as {
+//       id: string
+//       status: string
+//       scheduled_date: string | null
+//       created_at: string
+//     }[]
+
+//     clientsMap.set(c.id, {
+//       id: c.id,
+//       name: c.name,
+//       age: c.age || '',
+//       phone: c.phone,
+//       countryCode: c.country_code || '+91',
+//       clientType: c.client_type as string,
+//       address: c.address || '',
+//       createdAt: new Date(c.created_at).toLocaleDateString('en-US', {
+//         month: 'short',
+//         day: 'numeric',
+//         year: 'numeric',
+//       }),
+//       totalAppointments: appts.length,
+//       scheduledDate: latestDates.get(c.id) || '',
+//       scheduledTime: latestTimes.get(c.id) || '',
+//       hasPayment: clientsWithPayment.has(c.id),
+//   paymentSummary: paymentTotals.get(c.id) || null,
+//    attendanceCount: attendanceCounts.get(c.id) || 0,
+//    location: latestLocations.get(c.id) || '',
+//    appointmentDays: latestDays.get(c.id) || [],
+//     })
+//   }
+
+//   // Sort by latest appointment date (newest first), then paginate
+//   const sorted = clientOrder
+//     .filter((id) => clientsMap.has(id))
+//     .map((id) => clientsMap.get(id))
+
+//   const paginated = sorted.slice(from, to + 1)
+
+//   return { clients: paginated, total: sorted.length, error: null }
+// }
 export async function getApprovedClients(params?: {
   page?: number
   pageSize?: number
@@ -284,7 +450,6 @@ export async function getApprovedClients(params?: {
   const from = (page - 1) * pageSize
   const to = from + pageSize - 1
 
-  // Step 1: Get client IDs with their latest scheduled date
   let appointmentQuery = supabase
     .from('appointments')
     .select('client_id, scheduled_date,scheduled_time,location,appointment_days')
@@ -304,23 +469,21 @@ export async function getApprovedClients(params?: {
     return { clients: [], total: 0, error: null }
   }
 
-  // Get unique client IDs ordered by their latest appointment date
   const clientOrder: string[] = []
   const latestTimes = new Map<string, string>()
   const latestDates = new Map<string, string>()
-  const latestLocations = new Map<string, string>() 
+  const latestLocations = new Map<string, string>()
   const latestDays = new Map<string, string[]>()
   for (const apt of matchingAppointments) {
     if (!latestDates.has(apt.client_id)) {
       latestDates.set(apt.client_id, apt.scheduled_date || '')
-       latestTimes.set(apt.client_id, apt.scheduled_time || '')
-        latestLocations.set(apt.client_id, apt.location || '')
-         latestDays.set(apt.client_id, apt.appointment_days || []) 
+      latestTimes.set(apt.client_id, apt.scheduled_time || '')
+      latestLocations.set(apt.client_id, apt.location || '')
+      latestDays.set(apt.client_id, apt.appointment_days || [])
       clientOrder.push(apt.client_id)
     }
   }
 
-  // Step 2: Query clients
   let query = supabase
     .from('clients')
     .select(
@@ -348,40 +511,34 @@ export async function getApprovedClients(params?: {
 
   if (error) return { error: error.message, clients: [], total: 0 }
 
-const { data: paymentData } = await supabase
-  .from('client_payments')
-  .select('client_id, total_amount')
+  // ─── Fetch payment & attendance data ───
+  const { data: paymentData } = await supabase
+    .from('client_payments')
+    .select('client_id, total_amount')
 
-const { data: allPaymentEntries } = await supabase
-  .from('transactions')
-  .select('client_id, amount_paise')
-  .eq('type', 'income')
-  .neq('status', 'void')
-  .not('client_id', 'is', null)
+  const { data: allPaymentEntries } = await supabase
+    .from('transactions')
+    .select('client_id, amount_paise, category')  // ← added category
+    .eq('type', 'income')
+    .neq('status', 'void')
+    .not('client_id', 'is', null)
 
-const paymentTotals = new Map<string, { totalAmount: number; totalPaid: number }>()
-const { data: attendanceData } = await supabase
-  .from('student_attendance')
-  .select('client_id')
+  const { data: attendanceData } = await supabase
+    .from('student_attendance')
+    .select('client_id')
 
-const attendanceCounts = new Map<string, number>()
-for (const a of (attendanceData || [])) {
-  attendanceCounts.set(a.client_id, (attendanceCounts.get(a.client_id) || 0) + 1)
-}
-for (const p of (paymentData || [])) {
-  paymentTotals.set(p.client_id, { totalAmount: Number(p.total_amount), totalPaid: 0 })
-}
-for (const e of (allPaymentEntries || [])) {
-  if (!e.client_id) continue
-  const existing = paymentTotals.get(e.client_id)
-  if (existing) {
-    existing.totalPaid += Number(e.amount_paise) / 100
-  } else {
-    paymentTotals.set(e.client_id, { totalAmount: 0, totalPaid: Number(e.amount_paise) / 100 })
+  const attendanceCounts = new Map<string, number>()
+  for (const a of (attendanceData || [])) {
+    attendanceCounts.set(a.client_id, (attendanceCounts.get(a.client_id) || 0) + 1)
   }
-}
 
-const clientsWithPayment = new Set(paymentTotals.keys())
+  // ─── Set configured total amounts only (paid calculated after clientsMap) ───
+  const paymentTotals = new Map<string, { totalAmount: number; totalPaid: number }>()
+  for (const p of (paymentData || [])) {
+    paymentTotals.set(p.client_id, { totalAmount: Number(p.total_amount), totalPaid: 0 })
+  }
+
+  // ─── Build clientsMap first (need client_type for payment filtering) ───
   const seen = new Set<string>()
   const clientsMap = new Map<string, any>()
 
@@ -412,12 +569,38 @@ const clientsWithPayment = new Set(paymentTotals.keys())
       totalAppointments: appts.length,
       scheduledDate: latestDates.get(c.id) || '',
       scheduledTime: latestTimes.get(c.id) || '',
-      hasPayment: clientsWithPayment.has(c.id),
-  paymentSummary: paymentTotals.get(c.id) || null,
-   attendanceCount: attendanceCounts.get(c.id) || 0,
-   location: latestLocations.get(c.id) || '',
-   appointmentDays: latestDays.get(c.id) || [],
+      attendanceCount: attendanceCounts.get(c.id) || 0,
+      location: latestLocations.get(c.id) || '',
+      appointmentDays: latestDays.get(c.id) || [],
+      // payment fields added below
+      hasPayment: false,
+      paymentSummary: null,
     })
+  }
+
+  // ─── Now calculate paid amounts (students: only "Tuition fee") ───
+  for (const e of (allPaymentEntries || [])) {
+    if (!e.client_id) continue
+
+    const clientData = clientsMap.get(e.client_id)
+    const isStudent = clientData?.clientType === 'Student'
+
+    // For students, only count "Tuition fee" in the table summary
+    if (isStudent && e.category !== 'Tuition fee' && e.category !== 'Session fee') continue
+
+    const existing = paymentTotals.get(e.client_id)
+    if (existing) {
+      existing.totalPaid += Number(e.amount_paise) / 100
+    } else {
+      paymentTotals.set(e.client_id, { totalAmount: 0, totalPaid: Number(e.amount_paise) / 100 })
+    }
+  }
+
+  // ─── Apply payment data to clientsMap ───
+  const clientsWithPayment = new Set(paymentTotals.keys())
+  for (const [id, client] of clientsMap) {
+    client.hasPayment = clientsWithPayment.has(id)
+    client.paymentSummary = paymentTotals.get(id) || null
   }
 
   // Sort by latest appointment date (newest first), then paginate
@@ -1039,7 +1222,6 @@ export async function getAllDataForExport() {
   }
 }
 
-// Get payment config for a client
 export async function getClientPaymentConfig(clientId: string) {
   const { supabase } = await getAuthenticatedUser()
 
@@ -1049,7 +1231,6 @@ export async function getClientPaymentConfig(clientId: string) {
     .eq('client_id', clientId)
     .single()
 
-  // Read payments from transactions table
   const { data: entries } = await supabase
     .from('transactions')
     .select('*')
@@ -1057,6 +1238,14 @@ export async function getClientPaymentConfig(clientId: string) {
     .eq('type', 'income')
     .neq('status', 'void')
     .order('date', { ascending: true })
+
+  const { data: client } = await supabase
+    .from('clients')
+    .select('client_type')
+    .eq('id', clientId)
+    .single()
+
+  const isStudent = client?.client_type === 'Student'
 
   const payments = (entries || []).map((e) => ({
     id: e.id,
@@ -1068,14 +1257,20 @@ export async function getClientPaymentConfig(clientId: string) {
     notes: e.notes || '',
   }))
 
-  // Return config even if total fee not set — payments may exist from attendance
   if (!config && payments.length === 0) return { config: null }
+
+  const tuitionPaid = isStudent
+    ? payments
+        .filter((p) => p.category === 'Tuition fee' || p.category === 'Session fee')
+        .reduce((sum, p) => sum + p.amount, 0)
+    : payments.reduce((sum, p) => sum + p.amount, 0)
 
   return {
     config: {
       totalAmount: config ? Number(config.total_amount) : 0,
       notes: config?.notes || '',
       payments,
+      tuitionPaid,
     },
   }
 }
@@ -1218,7 +1413,7 @@ export async function addStudentAttendance(clientId: string, record: {
         type: 'income',
         date: record.date,
         payee: client?.name || '',
-        category: 'Session fee',
+        category: 'Tuition fee',
         amount_paise: Math.round(record.paidAmount * 100),
         payment_method: record.paymentMethod || 'Cash',
         reference: `Attendance #${record.attendanceNo}`,

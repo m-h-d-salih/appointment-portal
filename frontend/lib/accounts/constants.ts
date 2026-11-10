@@ -1,5 +1,5 @@
 export const categories = {
-  income: ["Consultation fees", "Therapy fees", "Assessment fees", "Other income"],
+  income: ["Consultation fees", "Tuition fee", "Assessment fees", "Other income"],
   expense: ["Rent", "Salaries", "Utilities", "Supplies", "Maintenance", "Other expenses"],
 };
 export const paymentMethods = ["Cash", "UPI", "Bank transfer", "Card", "Cheque"];

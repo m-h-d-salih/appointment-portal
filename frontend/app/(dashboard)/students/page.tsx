@@ -220,13 +220,13 @@ export default function StudentsPage() {
       title: "Payment Status",
       key: "payment",
       render: (row) => {
-        const cfg = paymentConfigs[row.id];
-        const summary = cfg
-          ? {
-              totalAmount: cfg.totalAmount,
-              totalPaid: cfg.payments.reduce((s, p) => s + p.amount, 0),
-            }
-          : row.paymentSummary;
+const cfg = paymentConfigs[row.id];
+const summary = cfg
+  ? {
+      totalAmount: cfg.totalAmount,
+      totalPaid: cfg.tuitionPaid ?? cfg.payments.reduce((s, p) => s + p.amount, 0),
+    }
+  : row.paymentSummary;
 
         if (
           !summary ||

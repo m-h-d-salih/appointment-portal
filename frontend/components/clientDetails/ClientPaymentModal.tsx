@@ -44,8 +44,9 @@ export type ClientPaymentEntry = {
 
 export type ClientPaymentConfig = {
   totalAmount: number;
-  notes?: string;
+  notes: string;
   payments: ClientPaymentEntry[];
+  tuitionPaid?: number;
 };
 
 const themeConfig = {
@@ -208,10 +209,7 @@ const showSetupForm = !historyOnly && isStudent && (!isConfigured || editingTota
     });
   }, [open, addingPayment, paymentForm]);
 
-  const paidTotal = (config?.payments || []).reduce(
-    (sum, item) => sum + item.amount,
-    0,
-  );
+  const paidTotal = config?.tuitionPaid ?? (config?.payments || []).reduce((sum, item) => sum + item.amount, 0);
   const totalFee = config?.totalAmount || 0;
   const balanceAmount = Math.max(totalFee - paidTotal, 0);
 
